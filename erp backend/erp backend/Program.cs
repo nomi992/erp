@@ -14,6 +14,7 @@ using erp_backend.Ledgers;
 using erp_backend.Middleware;
 using erp_backend.Models;
 using erp_backend.Partners;
+using erp_backend.PartnerPayments;
 using erp_backend.ProductCategories;
 using erp_backend.Products;
 using erp_backend.Reporting;
@@ -97,6 +98,7 @@ builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IStockAccountMappingRepository, StockAccountMappingRepository>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IPartnerPaymentRepository, PartnerPaymentRepository>();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();

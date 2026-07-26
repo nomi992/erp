@@ -51,6 +51,8 @@ public class AppDbContext : DbContext
     public DbSet<StockBalance> StockBalances => Set<StockBalance>();
     public DbSet<InvoiceHeader> InvoiceHeaders => Set<InvoiceHeader>();
     public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+    public DbSet<PartnerPaymentHeader> PartnerPaymentHeaders => Set<PartnerPaymentHeader>();
+    public DbSet<PartnerPaymentAllocation> PartnerPaymentAllocations => Set<PartnerPaymentAllocation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -448,6 +450,29 @@ public class AppDbContext : DbContext
             entity.HasOne(l => l.UnitOfMeasure).WithMany().HasForeignKey(l => l.UnitOfMeasureId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(l => l.TaxRate).WithMany().HasForeignKey(l => l.TaxRateId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(l => l.ReferenceInvoiceLine).WithMany().HasForeignKey(l => l.ReferenceInvoiceLineId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PartnerPaymentHeader>(entity =>
+        {
+            entity.HasIndex(p => new { p.TenantId, p.BranchId, p.Direction, p.PaymentNo }).IsUnique();
+            entity.Property(p => p.TotalAmount).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(p => p.Partner).WithMany().HasForeignKey(p => p.PartnerId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.BankOrCashAccount).WithMany().HasForeignKey(p => p.BankOrCashAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.LinkedVoucher).WithMany().HasForeignKey(p => p.LinkedVoucherId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(p => p.Allocations)
+                .WithOne(a => a.PartnerPaymentHeader)
+                .HasForeignKey(a => a.PartnerPaymentHeaderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PartnerPaymentAllocation>(entity =>
+        {
+            entity.HasIndex(a => new { a.TenantId, a.BranchId });
+            entity.Property(a => a.AllocatedAmount).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(a => a.InvoiceHeader).WithMany().HasForeignKey(a => a.InvoiceHeaderId).OnDelete(DeleteBehavior.Restrict);
         });
 
         ApplyTenantBranchQueryFilters(modelBuilder);
