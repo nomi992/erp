@@ -38,6 +38,18 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RoleRight> RoleRights => Set<RoleRight>();
 
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+    public DbSet<UnitOfMeasure> UnitsOfMeasure => Set<UnitOfMeasure>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
+    public DbSet<UOMConversion> UOMConversions => Set<UOMConversion>();
+    public DbSet<ProductVariantPrice> ProductVariantPrices => Set<ProductVariantPrice>();
+    public DbSet<BusinessPartner> BusinessPartners => Set<BusinessPartner>();
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<StockAccountMapping> StockAccountMappings => Set<StockAccountMapping>();
+    public DbSet<StockLedgerEntry> StockLedgerEntries => Set<StockLedgerEntry>();
+    public DbSet<StockBalance> StockBalances => Set<StockBalance>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -273,6 +285,132 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<AuditLog>(entity =>
         {
             entity.HasIndex(a => a.TenantId);
+        });
+
+        modelBuilder.Entity<ProductCategory>(entity =>
+        {
+            entity.HasIndex(c => c.TenantId);
+
+            entity.HasOne(c => c.ParentProductCategory)
+                .WithMany()
+                .HasForeignKey(c => c.ParentProductCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<UnitOfMeasure>(entity =>
+        {
+            entity.HasIndex(u => new { u.TenantId, u.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasIndex(p => new { p.TenantId, p.SKU }).IsUnique();
+            entity.Property(p => p.ReorderLevel).HasColumnType("decimal(18,4)");
+
+            entity.HasOne(p => p.ProductCategory)
+                .WithMany()
+                .HasForeignKey(p => p.ProductCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(p => p.BaseUnitOfMeasure)
+                .WithMany()
+                .HasForeignKey(p => p.BaseUnitOfMeasureId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(p => p.Variants)
+                .WithOne(v => v.Product)
+                .HasForeignKey(v => v.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(p => p.UOMConversions)
+                .WithOne(c => c.Product)
+                .HasForeignKey(c => c.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ProductVariant>(entity =>
+        {
+            entity.HasIndex(v => new { v.TenantId, v.ProductId, v.VariantCode }).IsUnique();
+
+            entity.HasMany(v => v.Prices)
+                .WithOne(p => p.ProductVariant)
+                .HasForeignKey(p => p.ProductVariantId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UOMConversion>(entity =>
+        {
+            entity.HasIndex(c => new { c.TenantId, c.ProductId, c.UnitOfMeasureId }).IsUnique();
+            entity.Property(c => c.ConversionFactor).HasColumnType("decimal(18,6)");
+
+            entity.HasOne(c => c.UnitOfMeasure)
+                .WithMany()
+                .HasForeignKey(c => c.UnitOfMeasureId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ProductVariantPrice>(entity =>
+        {
+            entity.HasIndex(p => new { p.TenantId, p.ProductVariantId, p.PriceType }).IsUnique();
+            entity.Property(p => p.Amount).HasColumnType("decimal(18,4)");
+        });
+
+        modelBuilder.Entity<BusinessPartner>(entity =>
+        {
+            entity.HasIndex(p => new { p.TenantId, p.Code }).IsUnique();
+            entity.Property(p => p.CreditLimit).HasColumnType("decimal(18,2)");
+        });
+
+        modelBuilder.Entity<Warehouse>(entity =>
+        {
+            entity.HasIndex(w => new { w.TenantId, w.BranchId, w.Code }).IsUnique();
+
+            entity.HasOne(w => w.CostCenter)
+                .WithMany()
+                .HasForeignKey(w => w.CostCenterId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StockAccountMapping>(entity =>
+        {
+            entity.HasIndex(m => m.TenantId);
+
+            entity.HasOne(m => m.ProductCategory).WithMany().HasForeignKey(m => m.ProductCategoryId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.InventoryAssetAccount).WithMany().HasForeignKey(m => m.InventoryAssetAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.COGSAccount).WithMany().HasForeignKey(m => m.COGSAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.AccountsPayableAccount).WithMany().HasForeignKey(m => m.AccountsPayableAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.SalesRevenueAccount).WithMany().HasForeignKey(m => m.SalesRevenueAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.AccountsReceivableAccount).WithMany().HasForeignKey(m => m.AccountsReceivableAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.CashOrBankAccount).WithMany().HasForeignKey(m => m.CashOrBankAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.InputTaxAccount).WithMany().HasForeignKey(m => m.InputTaxAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.OutputTaxAccount).WithMany().HasForeignKey(m => m.OutputTaxAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.StockAdjustmentVarianceAccount).WithMany().HasForeignKey(m => m.StockAdjustmentVarianceAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(m => m.OpeningBalanceEquityAccount).WithMany().HasForeignKey(m => m.OpeningBalanceEquityAccountId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StockLedgerEntry>(entity =>
+        {
+            entity.HasIndex(e => new { e.TenantId, e.BranchId, e.ProductVariantId, e.WarehouseId });
+            entity.Property(e => e.QuantityIn).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.QuantityOut).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.UnitCost).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.TotalCostSigned).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.RunningQuantity).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.RunningValue).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(e => e.ProductVariant).WithMany().HasForeignKey(e => e.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Warehouse).WithMany().HasForeignKey(e => e.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StockBalance>(entity =>
+        {
+            entity.HasIndex(b => new { b.TenantId, b.BranchId, b.ProductVariantId, b.WarehouseId }).IsUnique();
+            entity.Property(b => b.QuantityOnHand).HasColumnType("decimal(18,4)");
+            entity.Property(b => b.AverageCost).HasColumnType("decimal(18,4)");
+            entity.Property(b => b.ReorderLevel).HasColumnType("decimal(18,4)");
+
+            entity.HasOne(b => b.ProductVariant).WithMany().HasForeignKey(b => b.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(b => b.Warehouse).WithMany().HasForeignKey(b => b.WarehouseId).OnDelete(DeleteBehavior.Restrict);
         });
 
         ApplyTenantBranchQueryFilters(modelBuilder);

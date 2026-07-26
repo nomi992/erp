@@ -294,6 +294,346 @@ public enum ResponseMessage
     RoleDeleted,
     [Description("One or more selected rights were not found.")]
     RightNotFound,
+
+    // --- Product Categories ---
+    [Description("Product category not found.")]
+    ProductCategoryNotFound,
+    [Description("Parent product category not found.")]
+    ParentProductCategoryNotFound,
+    [Description("A product category cannot be its own parent.")]
+    ProductCategoryCannotBeOwnParent,
+    [Description("This parent assignment would create a circular reference.")]
+    ProductCategoryCircularReference,
+    [Description("Product category created successfully.")]
+    ProductCategoryCreated,
+    [Description("Product category updated successfully.")]
+    ProductCategoryUpdated,
+    [Description("Product category activated.")]
+    ProductCategoryActivated,
+    [Description("Product category deactivated.")]
+    ProductCategoryDeactivated,
+
+    // --- Units of Measure ---
+    [Description("Unit of measure not found.")]
+    UnitOfMeasureNotFound,
+    [Description("A unit of measure with this code already exists.")]
+    UnitOfMeasureCodeExists,
+    [Description("Unit of measure created successfully.")]
+    UnitOfMeasureCreated,
+    [Description("Unit of measure updated successfully.")]
+    UnitOfMeasureUpdated,
+    [Description("Unit of measure activated.")]
+    UnitOfMeasureActivated,
+    [Description("Unit of measure deactivated.")]
+    UnitOfMeasureDeactivated,
+    [Description("A UOM conversion for this unit already exists on this product.")]
+    UOMConversionExists,
+    [Description("UOM conversion not found.")]
+    UOMConversionNotFound,
+    [Description("Conversion factor must be greater than zero.")]
+    UOMConversionFactorInvalid,
+    [Description("The base unit of measure cannot also be added as a conversion.")]
+    UOMConversionCannotBeBaseUnit,
+
+    // --- Products / Variants / Pricing ---
+    [Description("Product not found.")]
+    ProductNotFound,
+    [Description("A product with this SKU already exists.")]
+    ProductSKUExists,
+    [Description("Base unit of measure not found.")]
+    BaseUnitOfMeasureNotFound,
+    [Description("Product created successfully.")]
+    ProductCreated,
+    [Description("Product updated successfully.")]
+    ProductUpdated,
+    [Description("Product activated.")]
+    ProductActivated,
+    [Description("Product deactivated.")]
+    ProductDeactivated,
+    [Description("Product variant not found.")]
+    ProductVariantNotFound,
+    [Description("A variant with this code already exists for this product.")]
+    ProductVariantCodeExists,
+    [Description("A product must always have at least one active variant.")]
+    ProductRequiresAtLeastOneVariant,
+    [Description("Amount must not be negative.")]
+    ProductVariantPriceAmountNegative,
+
+    // --- Business Partners (Suppliers / Customers) ---
+    [Description("Business partner not found.")]
+    BusinessPartnerNotFound,
+    [Description("A business partner with this code already exists.")]
+    BusinessPartnerCodeExists,
+    [Description("This partner is not a valid supplier.")]
+    BusinessPartnerNotASupplier,
+    [Description("This partner is not a valid customer.")]
+    BusinessPartnerNotACustomer,
+    [Description("Business partner created successfully.")]
+    BusinessPartnerCreated,
+    [Description("Business partner updated successfully.")]
+    BusinessPartnerUpdated,
+    [Description("Business partner activated.")]
+    BusinessPartnerActivated,
+    [Description("Business partner deactivated.")]
+    BusinessPartnerDeactivated,
+
+    // --- Warehouses ---
+    [Description("Warehouse not found.")]
+    WarehouseNotFound,
+    [Description("A warehouse with this code already exists for this branch.")]
+    WarehouseCodeExists,
+    [Description("Warehouse created successfully.")]
+    WarehouseCreated,
+    [Description("Warehouse updated successfully.")]
+    WarehouseUpdated,
+    [Description("Warehouse activated.")]
+    WarehouseActivated,
+    [Description("Warehouse deactivated.")]
+    WarehouseDeactivated,
+
+    // --- Stock Account Mappings ---
+    [Description("Stock account mapping not found.")]
+    StockAccountMappingNotFound,
+    [Description("A tenant-wide default mapping (no product category) already exists.")]
+    StockAccountMappingDefaultAlreadyExists,
+    [Description("A mapping for this product category already exists.")]
+    StockAccountMappingCategoryAlreadyExists,
+    [Description("One or more mapped accounts were not found.")]
+    StockAccountMappingAccountNotFound,
+    [Description("No applicable stock account mapping was found for this product's category, and no tenant-wide default is configured.")]
+    StockAccountMappingNotConfigured,
+    [Description("Stock account mapping created successfully.")]
+    StockAccountMappingCreated,
+    [Description("Stock account mapping updated successfully.")]
+    StockAccountMappingUpdated,
+
+    // --- Inventory / Stock Movement ---
+    [Description("Insufficient stock: only {0} available at this warehouse.")]
+    InsufficientStock,
+    [Description("Stock balance not found for this product variant at this warehouse.")]
+    StockBalanceNotFound,
+    [Description("Warehouse not found.")]
+    StockMovementWarehouseNotFound,
+    [Description("Product variant not found.")]
+    StockMovementVariantNotFound,
+
+    // --- Invoices / Orders (all 6 InvoiceType values) ---
+    [Description("Invoice not found.")]
+    InvoiceNotFound,
+    [Description("Partner not found.")]
+    InvoicePartnerNotFound,
+    [Description("Warehouse not found.")]
+    InvoiceWarehouseNotFound,
+    [Description("An invoice requires at least one line item.")]
+    InvoiceRequiresAtLeastOneLine,
+    [Description("Product variant {0} was not found.")]
+    InvoiceLineVariantNotFound,
+    [Description("Unit of measure {0} was not found.")]
+    InvoiceLineUnitOfMeasureNotFound,
+    [Description("Quantity must be greater than zero.")]
+    InvoiceLineQuantityInvalid,
+    [Description("Tax rate {0} was not found.")]
+    InvoiceLineTaxRateNotFound,
+    [Description("This document's date falls within a closed fiscal period.")]
+    InvoiceDateInClosedPeriod,
+    [Description("Only draft documents can be edited.")]
+    InvoiceNotDraftForEdit,
+    [Description("Only draft documents can be submitted for approval.")]
+    InvoiceNotDraftForSubmit,
+    [Description("Only documents pending approval can be approved.")]
+    InvoiceNotPendingForApprove,
+    [Description("Only documents pending approval can be rejected.")]
+    InvoiceNotPendingForReject,
+    [Description("This document's date falls within a closed fiscal period.")]
+    InvoiceDateInClosedPeriodForApproval,
+    [Description("Only draft, pending, or open/partially-fulfilled documents can be cancelled.")]
+    InvoiceNotCancellable,
+    [Description("A fully fulfilled order cannot be cancelled.")]
+    InvoiceOrderFullyFulfilledCannotCancel,
+    [Description("The referenced document was not found.")]
+    InvoiceReferenceNotFound,
+    [Description("The referenced document must be posted before this one can be raised against it.")]
+    InvoiceReferenceNotPosted,
+    [Description("The referenced document is not of the expected type for this operation.")]
+    InvoiceReferenceTypeMismatch,
+    [Description("A return requires a reference to the document being returned.")]
+    InvoiceReturnRequiresReference,
+    [Description("This referenced order line does not have enough remaining unfulfilled quantity.")]
+    InvoiceReferenceLineOverFulfilled,
+    [Description("No stock account mapping is configured for this transaction.")]
+    InvoiceNoStockAccountMapping,
+    [Description("Purchase order created as draft.")]
+    PurchaseOrderCreated,
+    [Description("Purchase order updated.")]
+    PurchaseOrderUpdated,
+    [Description("Purchase order submitted for approval.")]
+    PurchaseOrderSubmitted,
+    [Description("Purchase order approved.")]
+    PurchaseOrderApproved,
+    [Description("Purchase order rejected.")]
+    PurchaseOrderRejected,
+    [Description("Purchase order cancelled.")]
+    PurchaseOrderCancelled,
+    [Description("Sales order created as draft.")]
+    SalesOrderCreated,
+    [Description("Sales order updated.")]
+    SalesOrderUpdated,
+    [Description("Sales order submitted for approval.")]
+    SalesOrderSubmitted,
+    [Description("Sales order approved.")]
+    SalesOrderApproved,
+    [Description("Sales order rejected.")]
+    SalesOrderRejected,
+    [Description("Sales order cancelled.")]
+    SalesOrderCancelled,
+    [Description("Purchase invoice created as draft.")]
+    PurchaseInvoiceCreated,
+    [Description("Purchase invoice updated.")]
+    PurchaseInvoiceUpdated,
+    [Description("Purchase invoice submitted for approval.")]
+    PurchaseInvoiceSubmitted,
+    [Description("Purchase invoice approved and posted.")]
+    PurchaseInvoiceApproved,
+    [Description("Purchase invoice rejected.")]
+    PurchaseInvoiceRejected,
+    [Description("Sales invoice created as draft.")]
+    SalesInvoiceCreated,
+    [Description("Sales invoice updated.")]
+    SalesInvoiceUpdated,
+    [Description("Sales invoice submitted for approval.")]
+    SalesInvoiceSubmitted,
+    [Description("Sales invoice approved and posted.")]
+    SalesInvoiceApproved,
+    [Description("Sales invoice rejected.")]
+    SalesInvoiceRejected,
+    [Description("Purchase return created as draft.")]
+    PurchaseReturnCreated,
+    [Description("Purchase return updated.")]
+    PurchaseReturnUpdated,
+    [Description("Purchase return submitted for approval.")]
+    PurchaseReturnSubmitted,
+    [Description("Purchase return approved and posted.")]
+    PurchaseReturnApproved,
+    [Description("Purchase return rejected.")]
+    PurchaseReturnRejected,
+    [Description("Sale return created as draft.")]
+    SaleReturnCreated,
+    [Description("Sale return updated.")]
+    SaleReturnUpdated,
+    [Description("Sale return submitted for approval.")]
+    SaleReturnSubmitted,
+    [Description("Sale return approved and posted.")]
+    SaleReturnApproved,
+    [Description("Sale return rejected.")]
+    SaleReturnRejected,
+
+    // --- Partner Payments (Customer Receipts / Supplier Payments) ---
+    [Description("Payment not found.")]
+    PartnerPaymentNotFound,
+    [Description("A payment requires at least one allocation.")]
+    PartnerPaymentRequiresAtLeastOneAllocation,
+    [Description("Allocated amount must be greater than zero.")]
+    PartnerPaymentAllocationAmountInvalid,
+    [Description("Allocation total ({0}) does not match the payment's total amount ({1}).")]
+    PartnerPaymentAllocationTotalMismatch,
+    [Description("This invoice does not belong to the selected partner.")]
+    PartnerPaymentAllocationPartnerMismatch,
+    [Description("This invoice type is not valid for this payment direction.")]
+    PartnerPaymentAllocationInvoiceTypeMismatch,
+    [Description("Allocated amount ({0}) exceeds this invoice's outstanding balance ({1}).")]
+    PartnerPaymentAllocationExceedsOutstanding,
+    [Description("This invoice is already fully paid.")]
+    PartnerPaymentInvoiceAlreadyFullyPaid,
+    [Description("Bank/cash account not found.")]
+    PartnerPaymentBankAccountNotFound,
+    [Description("Only draft payments can be edited.")]
+    PartnerPaymentNotDraftForEdit,
+    [Description("Only draft payments can be submitted for approval.")]
+    PartnerPaymentNotDraftForSubmit,
+    [Description("Only payments pending approval can be approved.")]
+    PartnerPaymentNotPendingForApprove,
+    [Description("Only payments pending approval can be rejected.")]
+    PartnerPaymentNotPendingForReject,
+    [Description("Customer receipt created as draft.")]
+    CustomerReceiptCreated,
+    [Description("Customer receipt submitted for approval.")]
+    CustomerReceiptSubmitted,
+    [Description("Customer receipt approved and posted.")]
+    CustomerReceiptApproved,
+    [Description("Customer receipt rejected.")]
+    CustomerReceiptRejected,
+    [Description("Supplier payment created as draft.")]
+    SupplierPaymentCreated,
+    [Description("Supplier payment submitted for approval.")]
+    SupplierPaymentSubmitted,
+    [Description("Supplier payment approved and posted.")]
+    SupplierPaymentApproved,
+    [Description("Supplier payment rejected.")]
+    SupplierPaymentRejected,
+
+    // --- Stock Transfers ---
+    [Description("Stock transfer not found.")]
+    StockTransferNotFound,
+    [Description("Source and destination warehouse must be different.")]
+    StockTransferSameWarehouse,
+    [Description("A stock transfer requires at least one line item.")]
+    StockTransferRequiresAtLeastOneLine,
+    [Description("Only draft transfers can be edited.")]
+    StockTransferNotDraftForEdit,
+    [Description("Only draft transfers can be submitted for approval.")]
+    StockTransferNotDraftForSubmit,
+    [Description("Only transfers pending approval can be approved.")]
+    StockTransferNotPendingForApprove,
+    [Description("Only transfers pending approval can be rejected.")]
+    StockTransferNotPendingForReject,
+    [Description("Only transfers awaiting receipt can be received.")]
+    StockTransferNotPendingReceipt,
+    [Description("Received quantity cannot exceed the transferred quantity.")]
+    StockTransferReceivedQtyExceedsTransferred,
+    [Description("This document's date falls within a closed fiscal period.")]
+    StockTransferDateInClosedPeriod,
+    [Description("Stock transfer created as draft.")]
+    StockTransferCreated,
+    [Description("Stock transfer updated.")]
+    StockTransferUpdated,
+    [Description("Stock transfer submitted for approval.")]
+    StockTransferSubmitted,
+    [Description("Stock transfer approved.")]
+    StockTransferApproved,
+    [Description("Stock transfer rejected.")]
+    StockTransferRejected,
+    [Description("Stock transfer receipt recorded.")]
+    StockTransferReceived,
+
+    // --- Stock Adjustments ---
+    [Description("Stock adjustment not found.")]
+    StockAdjustmentNotFound,
+    [Description("A stock adjustment requires at least one line item.")]
+    StockAdjustmentRequiresAtLeastOneLine,
+    [Description("Unit cost is required for an Increase line.")]
+    StockAdjustmentUnitCostRequiredForIncrease,
+    [Description("An opening balance line can only be posted once per product variant and warehouse.")]
+    StockAdjustmentOpeningBalanceAlreadyExists,
+    [Description("Only draft adjustments can be edited.")]
+    StockAdjustmentNotDraftForEdit,
+    [Description("Only draft adjustments can be submitted for approval.")]
+    StockAdjustmentNotDraftForSubmit,
+    [Description("Only adjustments pending approval can be approved.")]
+    StockAdjustmentNotPendingForApprove,
+    [Description("Only adjustments pending approval can be rejected.")]
+    StockAdjustmentNotPendingForReject,
+    [Description("This document's date falls within a closed fiscal period.")]
+    StockAdjustmentDateInClosedPeriod,
+    [Description("Stock adjustment created as draft.")]
+    StockAdjustmentCreated,
+    [Description("Stock adjustment updated.")]
+    StockAdjustmentUpdated,
+    [Description("Stock adjustment submitted for approval.")]
+    StockAdjustmentSubmitted,
+    [Description("Stock adjustment approved and posted.")]
+    StockAdjustmentApproved,
+    [Description("Stock adjustment rejected.")]
+    StockAdjustmentRejected,
 }
 
 public static class ResponseMessageExtensions
