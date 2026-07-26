@@ -1,5 +1,6 @@
-import { Component, inject, input } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, input, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 
 interface NavItem {
@@ -22,6 +23,7 @@ interface NavGroup {
 })
 export class Sidebar {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly open = input(true);
 
@@ -111,6 +113,10 @@ export class Sidebar {
       ],
     },
     {
+      label: 'Settings',
+      items: [{ label: 'Theme', icon: 'pi pi-palette', route: '/settings/theme' }],
+    },
+    {
       label: 'Administration',
       items: [
         { label: 'Tenants', icon: 'pi pi-globe', route: '/admin/tenants', roles: ['SystemAdmin'] },
@@ -121,11 +127,42 @@ export class Sidebar {
     },
   ];
 
+  private readonly expandedGroup = signal<string | null>(this.findActiveGroupLabel(this.router.url));
+
+  constructor() {
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        const activeLabel = this.findActiveGroupLabel(event.urlAfterRedirects);
+        if (activeLabel) {
+          this.expandedGroup.set(activeLabel);
+        }
+      });
+  }
+
+  private findActiveGroupLabel(url: string): string | null {
+    const group = this.navGroups.find(
+      (g) => g.label && g.items.some((item) => url === item.route || url.startsWith(item.route + '/')),
+    );
+    return group?.label ?? null;
+  }
+
   isVisible(item: NavItem): boolean {
     return !item.roles || item.roles.includes(this.authService.role() ?? '');
   }
 
   isGroupVisible(group: NavGroup): boolean {
     return group.items.some((item) => this.isVisible(item));
+  }
+
+  isGroupCollapsed(group: NavGroup): boolean {
+    return !!group.label && this.expandedGroup() !== group.label;
+  }
+
+  toggleGroup(group: NavGroup): void {
+    if (!group.label) {
+      return;
+    }
+    this.expandedGroup.set(this.expandedGroup() === group.label ? null : group.label);
   }
 }

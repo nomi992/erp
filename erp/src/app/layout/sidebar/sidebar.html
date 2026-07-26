@@ -2,14 +2,24 @@
   @for (group of navGroups; track group.label) {
     @if (isGroupVisible(group)) {
       @if (group.label) {
-        <div class="nav-group-label">{{ group.label }}</div>
+        <button
+          type="button"
+          class="nav-group-label"
+          [class.collapsed]="isGroupCollapsed(group)"
+          (click)="toggleGroup(group)"
+        >
+          <span>{{ group.label }}</span>
+          <i class="pi pi-chevron-down nav-group-chevron"></i>
+        </button>
       }
-      @for (item of group.items; track item.route) {
-        @if (isVisible(item)) {
-          <a class="nav-item" [routerLink]="item.route" routerLinkActive="active">
-            <i [class]="item.icon"></i>
-            <span class="nav-label">{{ item.label }}</span>
-          </a>
+      @if (!isGroupCollapsed(group)) {
+        @for (item of group.items; track item.route) {
+          @if (isVisible(item)) {
+            <a class="nav-item" [routerLink]="item.route" routerLinkActive="active">
+              <i [class]="item.icon"></i>
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          }
         }
       }
     }

@@ -65,6 +65,7 @@ import { StockLedgerPage } from './pages/stock-ledger/stock-ledger';
 import { StockOnHandPage } from './pages/stock-on-hand/stock-on-hand';
 import { AccountsReceivableAging } from './pages/accounts-receivable-aging/accounts-receivable-aging';
 import { AccountsPayableAging } from './pages/accounts-payable-aging/accounts-payable-aging';
+import { ThemeSettings } from './pages/settings/theme-settings/theme-settings';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -161,6 +162,8 @@ export const routes: Routes = [
       { path: 'stock-on-hand', component: StockOnHandPage },
       { path: 'accounts-receivable-aging', component: AccountsReceivableAging },
       { path: 'accounts-payable-aging', component: AccountsPayableAging },
+
+      { path: 'settings/theme', component: ThemeSettings },
 
       {
         path: 'admin/tenants',

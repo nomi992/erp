@@ -1,0 +1,53 @@
+<p-card header="Appearance">
+  <div class="setting-row">
+    <div class="setting-label">
+      <span class="setting-title">Color Scheme</span>
+      <span class="setting-hint">Changes the overall look of components (shapes, shadows, fonts).</span>
+    </div>
+    <p-selectButton
+      [ngModel]="themeService.currentPreset()"
+      (ngModelChange)="onPresetChange($event)"
+      [options]="themeService.presetOptions"
+      optionLabel="label"
+      optionValue="name"
+    />
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-label">
+      <span class="setting-title">Mode</span>
+      <span class="setting-hint">Light or dark background.</span>
+    </div>
+    <p-selectButton
+      [ngModel]="themeService.currentMode()"
+      (ngModelChange)="onModeChange($event)"
+      [options]="[
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+      ]"
+      optionLabel="label"
+      optionValue="value"
+    />
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-label">
+      <span class="setting-title">Primary Color</span>
+      <span class="setting-hint">Accent color used for buttons, links, and highlights.</span>
+    </div>
+    <div class="primary-color-picker" role="group" aria-label="Primary color">
+      @for (color of themeService.primaryColorOptions; track color.name) {
+        <button
+          type="button"
+          class="color-swatch"
+          [class.active]="themeService.currentPrimaryColor() === color.name"
+          [style.background]="color.swatch"
+          [attr.aria-label]="color.label"
+          [attr.aria-pressed]="themeService.currentPrimaryColor() === color.name"
+          [pTooltip]="color.label"
+          (click)="onPrimaryColorChange(color.name)"
+        ></button>
+      }
+    </div>
+  </div>
+</p-card>
