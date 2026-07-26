@@ -1,0 +1,138 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Balance Sheet</h2>
+    @if (report(); as r) {
+      <p-tag [value]="r.isBalanced ? 'Balanced' : 'Out of balance'" [severity]="r.isBalanced ? 'success' : 'danger'" />
+    }
+  </div>
+
+  <div class="filter-bar">
+    <div class="field">
+      <label for="asOf">As Of</label>
+      <p-datepicker inputId="asOf" [ngModel]="asOf()" (ngModelChange)="asOf.set($event)" dateFormat="yy-mm-dd" [showIcon]="true" />
+    </div>
+
+    <div class="field">
+      <label for="costCenter">Cost Center</label>
+      <p-select
+        inputId="costCenter"
+        [ngModel]="costCenterId()"
+        (ngModelChange)="costCenterId.set($event)"
+        [options]="costCenterOptions()"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    <div class="field-actions">
+      <p-button label="Run" icon="pi pi-play" (onClick)="run()" [loading]="loading()" />
+      <p-button
+        label="Export PDF"
+        icon="pi pi-file-pdf"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="!report()"
+        [loading]="exportingPdf()"
+        (onClick)="exportReport('pdf')"
+      />
+      <p-button
+        label="Export Excel"
+        icon="pi pi-file-excel"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="!report()"
+        [loading]="exportingExcel()"
+        (onClick)="exportReport('excel')"
+      />
+    </div>
+  </div>
+
+  @if (report(); as r) {
+    <h3>Assets</h3>
+    <p-table [value]="r.assets" [loading]="loading()" dataKey="accountId">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Code</th>
+          <th>Account</th>
+          <th class="numeric">Amount</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.accountCode }}</td>
+          <td>{{ row.accountName }}</td>
+          <td class="numeric">{{ row.amount | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr class="totals-row">
+          <td colspan="2">Total Assets</td>
+          <td class="numeric">{{ r.totalAssets | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3">No asset accounts found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <h3>Liabilities</h3>
+    <p-table [value]="r.liabilities" [loading]="loading()" dataKey="accountId">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Code</th>
+          <th>Account</th>
+          <th class="numeric">Amount</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.accountCode }}</td>
+          <td>{{ row.accountName }}</td>
+          <td class="numeric">{{ row.amount | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr class="totals-row">
+          <td colspan="2">Total Liabilities</td>
+          <td class="numeric">{{ r.totalLiabilities | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3">No liability accounts found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <h3>Equity</h3>
+    <p-table [value]="r.equity" [loading]="loading()" dataKey="accountId">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Code</th>
+          <th>Account</th>
+          <th class="numeric">Amount</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.accountCode }}</td>
+          <td>{{ row.accountName }}</td>
+          <td class="numeric">{{ row.amount | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr class="totals-row">
+          <td colspan="2">Total Equity</td>
+          <td class="numeric">{{ r.totalEquity | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3">No equity accounts found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</p-card>

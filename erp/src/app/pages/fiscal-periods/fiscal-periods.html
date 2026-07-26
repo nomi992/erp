@@ -1,0 +1,91 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Fiscal Periods</h2>
+    <p-button *appHasRight="RightCode.FiscalPeriodsCreate" label="Add Fiscal Period" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="fiscalPeriods()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-fiscalPeriod>
+      <tr>
+        <td>{{ fiscalPeriod.name }}</td>
+        <td>{{ fiscalPeriod.startDate | date: 'mediumDate' }}</td>
+        <td>{{ fiscalPeriod.endDate | date: 'mediumDate' }}</td>
+        <td>
+          <p-tag
+            [value]="fiscalPeriod.isClosed ? 'Closed' : 'Open'"
+            [severity]="fiscalPeriod.isClosed ? 'danger' : 'success'"
+          />
+        </td>
+        <td class="actions">
+          @if (fiscalPeriod.isClosed) {
+            <p-button
+              *appHasRight="RightCode.FiscalPeriodsReopen"
+              icon="pi pi-lock-open"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              pTooltip="Reopen period"
+              (onClick)="toggleClosed(fiscalPeriod)"
+            />
+          } @else {
+            <p-button
+              *appHasRight="RightCode.FiscalPeriodsClose"
+              icon="pi pi-lock"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              pTooltip="Close period"
+              (onClick)="toggleClosed(fiscalPeriod)"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">No fiscal periods yet. Add a fiscal period to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  header="Add Fiscal Period"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="fiscal-period-form">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="startDate">Start Date</label>
+        <p-datepicker inputId="startDate" formControlName="startDate" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+
+      <div class="field">
+        <label for="endDate">End Date</label>
+        <p-datepicker inputId="endDate" formControlName="endDate" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

@@ -1,0 +1,11 @@
+:host {
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+
+.content {
+  height: 100%;
+  padding: 1.5rem;
+  overflow: auto;
+}

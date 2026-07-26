@@ -1,0 +1,76 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Budget vs Actual</h2>
+  </div>
+
+  <div class="filter-bar">
+    <div class="field">
+      <label for="year">Year</label>
+      <p-inputnumber inputId="year" [ngModel]="year()" (ngModelChange)="year.set($event)" [useGrouping]="false" mode="decimal" [min]="2000" [max]="2100" />
+    </div>
+
+    <div class="field">
+      <label for="month">Month</label>
+      <p-select
+        inputId="month"
+        [ngModel]="month()"
+        (ngModelChange)="month.set($event)"
+        [options]="monthOptions"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    <div class="field-actions">
+      <p-button label="Run" icon="pi pi-play" (onClick)="run()" [loading]="loading()" />
+      <p-button
+        label="Export PDF"
+        icon="pi pi-file-pdf"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="!rows()"
+        [loading]="exportingPdf()"
+        (onClick)="exportReport('pdf')"
+      />
+      <p-button
+        label="Export Excel"
+        icon="pi pi-file-excel"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="!rows()"
+        [loading]="exportingExcel()"
+        (onClick)="exportReport('excel')"
+      />
+    </div>
+  </div>
+
+  @if (rows(); as r) {
+    <p-table [value]="r" [loading]="loading()" dataKey="accountId">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Code</th>
+          <th>Account</th>
+          <th class="numeric">Budgeted</th>
+          <th class="numeric">Actual</th>
+          <th class="numeric">Variance</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.accountCode }}</td>
+          <td>{{ row.accountName }}</td>
+          <td class="numeric">{{ row.budgeted | number: '1.2-2' }}</td>
+          <td class="numeric">{{ row.actual | number: '1.2-2' }}</td>
+          <td class="numeric">
+            <p-tag [value]="(row.variance | number: '1.2-2') ?? ''" [severity]="varianceSeverity(row.variance)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">No budget data for the selected year/month.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</p-card>

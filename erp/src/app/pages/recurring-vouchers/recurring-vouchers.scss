@@ -1,0 +1,99 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.template-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+
+  p-select,
+  p-datepicker,
+  p-inputnumber,
+  input {
+    width: 100%;
+  }
+}
+
+.field-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.lines-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lines-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h4 {
+    margin: 0;
+  }
+}
+
+$lines-columns: 2fr 1fr 1fr 1fr 5rem;
+
+.lines-grid-header,
+.lines-grid-row {
+  display: grid;
+  grid-template-columns: $lines-columns;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lines-grid-header {
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.lines-grid-row {
+  padding: 0.25rem 0;
+
+  p-select,
+  p-inputnumber {
+    width: 100%;
+  }
+}
+
+.numeric {
+  text-align: right;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

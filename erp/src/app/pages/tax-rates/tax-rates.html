@@ -1,0 +1,68 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Tax Rates</h2>
+    <p-button *appHasRight="RightCode.TaxRatesCreate" label="Add Tax Rate" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="taxRates()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Percentage</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-taxRate>
+      <tr>
+        <td>{{ taxRate.name }}</td>
+        <td>{{ taxRate.percentage }}%</td>
+        <td>
+          <p-tag [value]="taxRate.isActive ? 'Active' : 'Inactive'" [severity]="taxRate.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.TaxRatesEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(taxRate)" />
+          <p-button
+            *appHasRight="RightCode.TaxRatesEdit"
+            [icon]="taxRate.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="taxRate.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(taxRate)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4">No tax rates yet. Add a tax rate to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingTaxRate() ? 'Edit Tax Rate' : 'Add Tax Rate'"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="tax-rate-form">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label for="percentage">Percentage</label>
+      <p-inputNumber inputId="percentage" formControlName="percentage" suffix="%" [min]="0" [max]="100" [minFractionDigits]="0" [maxFractionDigits]="2" />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

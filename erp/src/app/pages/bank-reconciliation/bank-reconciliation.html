@@ -1,0 +1,130 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Bank Reconciliation</h2>
+  </div>
+
+  <div class="field account-field">
+    <label for="accountId">Bank / Cash Account</label>
+    <p-select
+      inputId="accountId"
+      [formControl]="accountControl"
+      [options]="accountOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [filter]="true"
+      filterBy="label"
+      placeholder="Select a bank/cash account"
+      [loading]="loadingAccounts()"
+    />
+  </div>
+
+  @if (selectedAccountId(); as accountId) {
+    <div class="actions-bar">
+      <div class="upload-block">
+        <p-fileupload
+          mode="basic"
+          name="file"
+          accept=".csv"
+          chooseLabel="Import CSV"
+          [customUpload]="true"
+          [auto]="true"
+          [disabled]="importing()"
+          (uploadHandler)="onImport($event, fileUpload)"
+          #fileUpload
+        />
+        <span class="help-text">Expected columns: Date, Description, Reference, Amount (with a header row).</span>
+      </div>
+
+      <p-button label="Auto-Match" icon="pi pi-bolt" [loading]="autoMatching()" (onClick)="autoMatch()" />
+    </div>
+
+    <h3>Unmatched Lines</h3>
+    <p-table [value]="unmatchedLines()" [loading]="loadingLines()" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Reference</th>
+          <th class="numeric">Amount</th>
+          <th class="actions">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-line>
+        <tr>
+          <td>{{ line.transactionDate | date: 'mediumDate' }}</td>
+          <td>{{ line.description }}</td>
+          <td>{{ line.referenceNo }}</td>
+          <td class="numeric">{{ line.amount | number: '1.2-2' }}</td>
+          <td class="actions">
+            <p-button label="Match" icon="pi pi-link" size="small" [text]="true" (onClick)="openMatchDialog(line)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">No unmatched bank statement lines.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <h3>Matched Lines</h3>
+    <p-table [value]="matchedLines()" [loading]="loadingLines()" dataKey="id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Reference</th>
+          <th class="numeric">Amount</th>
+          <th>Matched Voucher No</th>
+          <th class="actions">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-line>
+        <tr>
+          <td>{{ line.transactionDate | date: 'mediumDate' }}</td>
+          <td>{{ line.description }}</td>
+          <td>{{ line.referenceNo }}</td>
+          <td class="numeric">{{ line.amount | number: '1.2-2' }}</td>
+          <td>{{ line.matchedVoucherNo ?? '—' }}</td>
+          <td class="actions">
+            <p-button label="Unmatch" icon="pi pi-times" severity="danger" size="small" [text]="true" (onClick)="unmatch(line)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6">No matched bank statement lines.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else {
+    <p class="placeholder">Select a bank/cash account to view its statement lines.</p>
+  }
+</p-card>
+
+<p-dialog
+  [visible]="matchDialogVisible()"
+  (visibleChange)="matchDialogVisible.set($event)"
+  header="Manual Match"
+  [modal]="true"
+  [style]="{ width: '26rem' }"
+>
+  @if (matchingLine(); as line) {
+    <form [formGroup]="matchForm" (ngSubmit)="confirmMatch()" class="match-form">
+      <p class="match-summary">
+        {{ line.transactionDate | date: 'mediumDate' }} — {{ line.description }} —
+        {{ line.amount | number: '1.2-2' }}
+      </p>
+
+      <div class="field">
+        <label for="voucherDetailId">Voucher Detail ID</label>
+        <p-inputNumber inputId="voucherDetailId" formControlName="voucherDetailId" [useGrouping]="false" />
+      </div>
+
+      <div class="dialog-actions">
+        <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeMatchDialog()" />
+        <p-button label="Match" type="submit" [loading]="matching()" />
+      </div>
+    </form>
+  }
+</p-dialog>

@@ -1,0 +1,65 @@
+<p-card>
+  <div class="toolbar">
+    <h2>General Ledger</h2>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="load()" class="filter-bar">
+    <div class="field">
+      <label for="voucherType">Voucher Type</label>
+      <p-select
+        inputId="voucherType"
+        formControlName="voucherType"
+        [options]="voucherTypeOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="All"
+        [showClear]="true"
+      />
+    </div>
+
+    <div class="field">
+      <label for="dateFrom">From</label>
+      <p-datepicker inputId="dateFrom" formControlName="dateFrom" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" />
+    </div>
+
+    <div class="field">
+      <label for="dateTo">To</label>
+      <p-datepicker inputId="dateTo" formControlName="dateTo" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" />
+    </div>
+
+    <div class="field-actions">
+      <p-button label="Filter" icon="pi pi-filter" type="submit" [loading]="loading()" />
+      <p-button label="Clear" icon="pi pi-times" severity="secondary" [text]="true" type="button" (onClick)="clear()" />
+    </div>
+  </form>
+
+  <p-table [value]="entries()" [loading]="loading()" dataKey="voucherId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Voucher No</th>
+        <th>Type</th>
+        <th>Date</th>
+        <th>Account</th>
+        <th>Narration</th>
+        <th class="numeric">Debit</th>
+        <th class="numeric">Credit</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-entry>
+      <tr>
+        <td><p-button [label]="entry.voucherNo" [link]="true" (onClick)="goToVoucher(entry.voucherId)" /></td>
+        <td><p-tag [value]="entry.voucherType" severity="info" /></td>
+        <td>{{ entry.date | date: 'mediumDate' }}</td>
+        <td>{{ entry.accountCode }} - {{ entry.accountName }}</td>
+        <td>{{ entry.narration }}</td>
+        <td class="numeric">{{ entry.debitAmount | number: '1.2-2' }}</td>
+        <td class="numeric">{{ entry.creditAmount | number: '1.2-2' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7">No general ledger entries found for the selected filters.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

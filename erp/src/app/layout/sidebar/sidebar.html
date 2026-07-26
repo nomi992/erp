@@ -1,0 +1,17 @@
+<nav class="sidebar" [class.expanded]="open()">
+  @for (group of navGroups; track group.label) {
+    @if (isGroupVisible(group)) {
+      @if (group.label) {
+        <div class="nav-group-label">{{ group.label }}</div>
+      }
+      @for (item of group.items; track item.route) {
+        @if (isVisible(item)) {
+          <a class="nav-item" [routerLink]="item.route" routerLinkActive="active">
+            <i [class]="item.icon"></i>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
+      }
+    }
+  }
+</nav>

@@ -1,0 +1,116 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Report Schedules</h2>
+    <p-button *appHasRight="RightCode.ReportSchedulesCreate" label="Add Schedule" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p class="hint">
+    There is no live email delivery configured in this environment — "Generate &amp; Download Now" runs the report and
+    downloads it as a PDF directly, it does not send anything by email.
+  </p>
+
+  <p-table [value]="schedules()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Report Type</th>
+        <th>Recipients</th>
+        <th>Frequency</th>
+        <th>Active</th>
+        <th>Last Run</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-schedule>
+      <tr>
+        <td>{{ reportTypeLabel(schedule.reportType) }}</td>
+        <td>{{ schedule.recipients }}</td>
+        <td>{{ schedule.frequency }}</td>
+        <td>
+          <p-tag [value]="schedule.isActive ? 'Active' : 'Inactive'" [severity]="schedule.isActive ? 'success' : 'danger'" />
+        </td>
+        <td>{{ schedule.lastRunAtUtc ? (schedule.lastRunAtUtc | date: 'medium') : 'Never' }}</td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.ReportSchedulesEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(schedule)" />
+          <p-button
+            *appHasRight="RightCode.ReportSchedulesEdit"
+            [icon]="schedule.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="schedule.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(schedule)"
+          />
+          <p-button
+            *appHasRight="RightCode.ReportSchedulesRunNow"
+            icon="pi pi-download"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            pTooltip="Generate & Download Now"
+            [loading]="runningId() === schedule.id"
+            (onClick)="runNow(schedule)"
+          />
+          <p-button
+            *appHasRight="RightCode.ReportSchedulesDelete"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            pTooltip="Delete"
+            (onClick)="confirmDelete(schedule)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No report schedules yet. Add a schedule to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingSchedule() ? 'Edit Schedule' : 'Add Schedule'"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="schedule-form">
+    <div class="field">
+      <label for="reportType">Report Type</label>
+      <p-select
+        inputId="reportType"
+        formControlName="reportType"
+        [options]="reportTypeOptions"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    <div class="field">
+      <label for="recipients">Recipients</label>
+      <input id="recipients" type="text" pInputText formControlName="recipients" placeholder="name@example.com, other@example.com" />
+    </div>
+
+    <div class="field">
+      <label for="frequency">Frequency</label>
+      <p-select
+        inputId="frequency"
+        formControlName="frequency"
+        [options]="frequencyOptions"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

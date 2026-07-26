@@ -1,0 +1,73 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Day Book</h2>
+  </div>
+
+  <div class="filter-bar">
+    <div class="field">
+      <label for="from">From</label>
+      <p-datepicker inputId="from" [ngModel]="from()" (ngModelChange)="from.set($event)" dateFormat="yy-mm-dd" [showIcon]="true" />
+    </div>
+
+    <div class="field">
+      <label for="to">To</label>
+      <p-datepicker inputId="to" [ngModel]="to()" (ngModelChange)="to.set($event)" dateFormat="yy-mm-dd" [showIcon]="true" />
+    </div>
+
+    <div class="field-actions">
+      <p-button label="Run" icon="pi pi-play" (onClick)="run()" [loading]="loading()" />
+      <p-button
+        label="Export PDF"
+        icon="pi pi-file-pdf"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="!entries()"
+        [loading]="exportingPdf()"
+        (onClick)="exportReport('pdf')"
+      />
+      <p-button
+        label="Export Excel"
+        icon="pi pi-file-excel"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="!entries()"
+        [loading]="exportingExcel()"
+        (onClick)="exportReport('excel')"
+      />
+    </div>
+  </div>
+
+  @if (entries(); as vouchers) {
+    @if (vouchers.length === 0) {
+      <p class="empty">No vouchers posted for the selected period.</p>
+    }
+
+    @for (voucher of vouchers; track voucher.voucherId) {
+      <div class="voucher-block">
+        <div class="voucher-header">
+          <span class="voucher-no">{{ voucher.voucherNo }}</span>
+          <p-tag [value]="voucher.voucherType" severity="info" />
+          <span class="voucher-date">{{ voucher.date }}</span>
+          <span class="voucher-narration">{{ voucher.narration }}</span>
+        </div>
+
+        <p-table [value]="voucher.lines" dataKey="accountCode">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Account</th>
+              <th class="numeric">Debit</th>
+              <th class="numeric">Credit</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-line>
+            <tr>
+              <td>{{ line.accountCode }} - {{ line.accountName }}</td>
+              <td class="numeric">{{ line.debitAmount ? (line.debitAmount | number: '1.2-2') : '' }}</td>
+              <td class="numeric">{{ line.creditAmount ? (line.creditAmount | number: '1.2-2') : '' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+  }
+</p-card>

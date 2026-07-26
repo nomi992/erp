@@ -1,0 +1,173 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Recurring Voucher Templates</h2>
+    <p-button *appHasRight="RightCode.RecurringVoucherTemplatesCreate" label="Add Template" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="templates()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Voucher Type</th>
+        <th>Frequency</th>
+        <th>Next Run Date</th>
+        <th>Active</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-template>
+      <tr>
+        <td>{{ template.name }}</td>
+        <td><p-tag [value]="template.voucherType" severity="info" /></td>
+        <td>{{ template.frequency }}</td>
+        <td>{{ template.nextRunDate | date: 'yyyy-MM-dd' }}</td>
+        <td>
+          <p-tag [value]="template.isActive ? 'Active' : 'Inactive'" [severity]="template.isActive ? 'success' : 'secondary'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.RecurringVoucherTemplatesEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(template)" />
+          <p-button
+            *appHasRight="RightCode.RecurringVoucherTemplatesEdit"
+            [icon]="template.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="template.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(template)"
+          />
+          <p-button *appHasRight="RightCode.RecurringVoucherTemplatesGenerateNow" icon="pi pi-bolt" [text]="true" [rounded]="true" size="small" pTooltip="Generate Now" (onClick)="generateNow(template)" />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No recurring templates yet. Add one to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingTemplate() ? 'Edit Template' : 'Add Template'"
+  [modal]="true"
+  [style]="{ width: '48rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="template-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" pInputText formControlName="name" />
+      </div>
+
+      <div class="field">
+        <label for="voucherType">Voucher Type</label>
+        <p-select
+          inputId="voucherType"
+          formControlName="voucherType"
+          [options]="voucherTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="narrationTemplate">Narration Template</label>
+      <input id="narrationTemplate" type="text" pInputText formControlName="narrationTemplate" />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="frequency">Frequency</label>
+        <p-select
+          inputId="frequency"
+          formControlName="frequency"
+          [options]="frequencyOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+
+      <div class="field">
+        <label for="nextRunDate">Next Run Date</label>
+        <p-datepicker inputId="nextRunDate" formControlName="nextRunDate" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+    </div>
+
+    <div class="lines-section">
+      <div class="lines-header-row">
+        <h4>Line Items</h4>
+        @if (isBalanced()) {
+          <p-tag value="Balanced" severity="success" icon="pi pi-check" />
+        } @else {
+          <p-tag [value]="'Debit ' + totalDebit() + ' / Credit ' + totalCredit()" severity="danger" icon="pi pi-exclamation-triangle" />
+        }
+      </div>
+
+      <div formArrayName="lines" class="lines-table">
+        <div class="lines-grid-header">
+          <span>Account</span>
+          <span class="numeric">Debit</span>
+          <span class="numeric">Credit</span>
+          <span>Cost Center</span>
+          <span class="actions">Actions</span>
+        </div>
+
+        @for (line of linesArray.controls; track line; let i = $index) {
+          <div class="lines-grid-row" [formGroup]="line">
+            <span>
+              <p-select
+                formControlName="accountId"
+                [options]="accountOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [filter]="true"
+                filterBy="label"
+                placeholder="Select account"
+                appendTo="body"
+              />
+            </span>
+            <span class="numeric">
+              <p-inputNumber formControlName="debitAmount" mode="decimal" [minFractionDigits]="2" />
+            </span>
+            <span class="numeric">
+              <p-inputNumber formControlName="creditAmount" mode="decimal" [minFractionDigits]="2" />
+            </span>
+            <span>
+              <p-select
+                formControlName="costCenterId"
+                [options]="costCenterOptions()"
+                optionLabel="label"
+                optionValue="value"
+                appendTo="body"
+              />
+            </span>
+            <span class="actions">
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [disabled]="linesArray.length <= 2"
+                pTooltip="Remove line"
+                (onClick)="removeLine(i)"
+              />
+            </span>
+          </div>
+        }
+      </div>
+
+      <p-button label="Add Line" icon="pi pi-plus" [text]="true" type="button" (onClick)="addLine()" />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" [disabled]="!canSave()" />
+    </div>
+  </form>
+</p-dialog>

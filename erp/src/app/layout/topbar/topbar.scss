@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.topbar {
+  border-radius: 0;
+  border-width: 0 0 1px 0;
+}
+
+.start {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tenant-name {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.branch-name {
+  opacity: 0.7;
+}
+
+.branch-select {
+  min-width: 12rem;
+}

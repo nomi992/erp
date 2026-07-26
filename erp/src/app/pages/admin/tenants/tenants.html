@@ -1,0 +1,73 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Tenants</h2>
+    <p-button label="Add Tenant" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="tenants()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Branches</th>
+        <th>Users</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-tenant>
+      <tr>
+        <td>{{ tenant.name }}</td>
+        <td>{{ tenant.code }}</td>
+        <td>{{ tenant.branchCount }}</td>
+        <td>{{ tenant.userCount }}</td>
+        <td>
+          <p-tag [value]="tenant.isActive ? 'Active' : 'Inactive'" [severity]="tenant.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(tenant)" />
+          <p-button
+            [icon]="tenant.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="tenant.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(tenant)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No tenants yet. Add a tenant to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingTenant() ? 'Edit Tenant' : 'Add Tenant'"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="tenant-form">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label for="code">Code</label>
+      <input id="code" type="text" pInputText formControlName="code" />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

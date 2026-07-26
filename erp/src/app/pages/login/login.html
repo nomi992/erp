@@ -1,0 +1,47 @@
+<div class="login-page">
+  <p-card class="login-card" header="ERP Login">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <div class="field">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          pInputText
+          formControlName="username"
+          autocomplete="username"
+          [fluid]="true"
+        />
+        @if (form.controls.username.invalid && form.controls.username.touched) {
+          <p-message severity="error" size="small" variant="simple">Username is required.</p-message>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [toggleMask]="true"
+          [feedback]="false"
+          [fluid]="true"
+          autocomplete="current-password"
+        />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <p-message severity="error" size="small" variant="simple">Password is required.</p-message>
+        }
+      </div>
+
+      <div class="field-row">
+        <p-checkbox formControlName="rememberMe" [binary]="true" inputId="rememberMe" />
+        <label for="rememberMe">Remember me</label>
+      </div>
+
+      <p-button
+        type="submit"
+        label="Sign In"
+        [fluid]="true"
+        [loading]="loading()"
+      />
+    </form>
+  </p-card>
+</div>

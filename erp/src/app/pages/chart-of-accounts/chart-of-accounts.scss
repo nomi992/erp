@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+$coa-columns: 5rem 1fr 6rem 6rem 6rem 6rem 9rem 9rem;
+
+.coa-header-row,
+.coa-row {
+  display: grid;
+  grid-template-columns: $coa-columns;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.coa-header-row {
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.coa-row {
+  width: 100%;
+  padding: 0.25rem 0;
+
+  .code {
+    font-weight: 600;
+  }
+}
+
+.numeric {
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+
+  p-select,
+  p-inputnumber {
+    width: 100%;
+  }
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

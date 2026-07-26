@@ -1,0 +1,86 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Cost Centers</h2>
+    <p-button *appHasRight="RightCode.CostCentersCreate" label="Add Cost Center" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="costCenters()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Parent</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-costCenter>
+      <tr>
+        <td>{{ costCenter.name }}</td>
+        <td>{{ costCenter.parentCostCenterName ?? '—' }}</td>
+        <td>
+          <p-tag [value]="costCenter.isActive ? 'Active' : 'Inactive'" [severity]="costCenter.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.CostCentersEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(costCenter)" />
+          <p-button
+            *appHasRight="RightCode.CostCentersEdit"
+            [icon]="costCenter.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="costCenter.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(costCenter)"
+          />
+          <p-button
+            *appHasRight="RightCode.CostCentersDelete"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            pTooltip="Delete"
+            (onClick)="confirmDelete(costCenter)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4">No cost centers yet. Add a cost center to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingCostCenter() ? 'Edit Cost Center' : 'Add Cost Center'"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="cost-center-form">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label for="parentCostCenterId">Parent Cost Center</label>
+      <p-select
+        inputId="parentCostCenterId"
+        formControlName="parentCostCenterId"
+        [options]="parentOptions()"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

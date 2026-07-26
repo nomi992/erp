@@ -1,0 +1,16 @@
+# .NET
+**/bin/
+**/obj/
+
+# Angular / Node
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Editor / OS
+.vs/
+*.user
+.DS_Store
+
+# Logs
+*.log

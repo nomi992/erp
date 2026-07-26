@@ -1,0 +1,154 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Chart of Accounts</h2>
+    <p-button *appHasRight="RightCode.AccountsCreate" label="Add Root Account" icon="pi pi-plus" (onClick)="openCreateDialog(null)" />
+  </div>
+
+  <div class="coa-header-row">
+    <span>Code</span>
+    <span>Name</span>
+    <span>Type</span>
+    <span>Nature</span>
+    <span>Control</span>
+    <span>Status</span>
+    <span class="numeric">Opening Balance</span>
+    <span class="actions">Actions</span>
+  </div>
+
+  <p-tree [value]="treeNodes()" [loading]="loading()" emptyMessage="No accounts yet. Add a root account to get started.">
+    <ng-template pTemplate="default" let-node>
+      <div class="coa-row">
+        <span class="code">{{ node.data.code }}</span>
+        <span class="name">{{ node.data.name }}</span>
+        <span><p-tag [value]="node.data.type" severity="info" /></span>
+        <span><p-tag [value]="node.data.nature" [severity]="node.data.nature === 'Debit' ? 'warn' : 'success'" /></span>
+        <span>
+          @if (node.data.isControlAccount) {
+            <p-tag value="Control" severity="secondary" />
+          }
+          @if (node.data.isCashAccount) {
+            <p-tag value="Cash" severity="info" />
+          }
+        </span>
+        <span>
+          <p-tag [value]="node.data.isActive ? 'Active' : 'Inactive'" [severity]="node.data.isActive ? 'success' : 'danger'" />
+        </span>
+        <span class="numeric">{{ node.data.openingBalance | number: '1.2-2' }} {{ node.data.openingBalanceNature }}</span>
+        <span class="actions">
+          <p-button *appHasRight="RightCode.AccountsCreate" icon="pi pi-plus" [text]="true" [rounded]="true" size="small" pTooltip="Add child account" (onClick)="openCreateDialog(node.data)" />
+          <p-button *appHasRight="RightCode.AccountsEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(node.data)" />
+          <p-button
+            *appHasRight="RightCode.AccountsEdit"
+            [icon]="node.data.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="node.data.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(node.data)"
+          />
+          <p-button
+            *appHasRight="RightCode.AccountsDelete"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [disabled]="node.data.children.length > 0"
+            pTooltip="Delete"
+            (onClick)="confirmDelete(node.data)"
+          />
+        </span>
+      </div>
+    </ng-template>
+  </p-tree>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingAccount() ? 'Edit Account' : 'Add Account'"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="account-form">
+    <div class="field">
+      <label for="code">Code</label>
+      <input id="code" type="text" pInputText formControlName="code" />
+    </div>
+
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="type">Type</label>
+        <p-select
+          inputId="type"
+          formControlName="type"
+          [options]="typeOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+
+      <div class="field">
+        <label for="nature">Nature</label>
+        <p-select
+          inputId="nature"
+          formControlName="nature"
+          [options]="natureOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="parentAccountId">Parent Account</label>
+      <p-select
+        inputId="parentAccountId"
+        formControlName="parentAccountId"
+        [options]="parentOptions()"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="openingBalance">Opening Balance</label>
+        <p-inputNumber inputId="openingBalance" formControlName="openingBalance" mode="decimal" [minFractionDigits]="2" />
+      </div>
+
+      <div class="field">
+        <label for="openingBalanceNature">Balance Nature</label>
+        <p-select
+          inputId="openingBalanceNature"
+          formControlName="openingBalanceNature"
+          [options]="natureOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <p-toggleswitch inputId="isControlAccount" formControlName="isControlAccount" />
+      <label for="isControlAccount">Control Account</label>
+    </div>
+
+    <div class="field-row">
+      <p-toggleswitch inputId="isCashAccount" formControlName="isCashAccount" />
+      <label for="isCashAccount">Cash / Bank Account</label>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

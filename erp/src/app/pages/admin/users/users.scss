@@ -1,0 +1,89 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  p-select {
+    min-width: 16rem;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.muted {
+  color: var(--p-text-muted-color);
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+
+  p-select,
+  p-multiselect,
+  p-password {
+    width: 100%;
+  }
+}
+
+.toggle-field {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.branch-manage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.granted-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.grant-row {
+  display: flex;
+  gap: 0.5rem;
+
+  p-select {
+    flex: 1;
+  }
+}

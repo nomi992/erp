@@ -1,0 +1,195 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>{{ readOnly() ? 'View Voucher' : isEditMode() ? 'Edit Voucher' : 'New Voucher' }}</h2>
+    @if (currentVoucher(); as voucher) {
+      <p-tag [value]="voucher.voucherNo" severity="info" />
+      <p-tag [value]="voucher.status" />
+    }
+  </div>
+
+  @if (readOnly()) {
+    <p-message severity="info" styleClass="read-only-banner">
+      This voucher is {{ currentVoucher()?.status }} and cannot be edited here. Use the actions on the Vouchers list
+      (Submit/Approve/Reject/Reverse) to change its status.
+    </p-message>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="voucher-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="voucherType">Voucher Type</label>
+        <p-select
+          inputId="voucherType"
+          formControlName="voucherType"
+          [options]="voucherTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+
+      <div class="field">
+        <label for="date">Date</label>
+        <p-datepicker inputId="date" formControlName="date" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+
+      <div class="field">
+        <label for="currencyCode">Currency Code</label>
+        <input id="currencyCode" type="text" pInputText formControlName="currencyCode" />
+      </div>
+
+      <div class="field">
+        <label for="exchangeRate">Exchange Rate</label>
+        <p-inputNumber inputId="exchangeRate" formControlName="exchangeRate" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="6" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="narration">Narration</label>
+      <textarea id="narration" pTextarea rows="2" formControlName="narration"></textarea>
+    </div>
+
+    <div class="lines-section">
+      <div class="lines-header-row">
+        <h3>Line Items</h3>
+        <div class="balance-indicator" [class.balanced]="isBalanced()" [class.unbalanced]="!isBalanced()">
+          @if (isBalanced()) {
+            <p-tag value="Balanced" severity="success" icon="pi pi-check" />
+          } @else {
+            <p-tag [value]="'Out of balance by ' + (balanceDifference() | number: '1.2-2')" severity="danger" icon="pi pi-exclamation-triangle" />
+          }
+          <span class="totals">Debit: {{ totalDebit() | number: '1.2-2' }} &nbsp; Credit: {{ totalCredit() | number: '1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div formArrayName="lines" class="lines-table">
+        <div class="lines-grid-header" [class.with-tax]="showTaxRate()">
+          <span>Account</span>
+          <span class="numeric">Debit</span>
+          <span class="numeric">Credit</span>
+          <span>Cost Center</span>
+          @if (showTaxRate()) {
+            <span>Tax Rate</span>
+          }
+          <span class="actions">Actions</span>
+        </div>
+
+        @for (line of linesArray.controls; track line; let i = $index) {
+          <div class="lines-grid-row" [class.with-tax]="showTaxRate()" [formGroup]="line">
+            <span>
+              <p-select
+                formControlName="accountId"
+                [options]="accountOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [filter]="true"
+                filterBy="label"
+                placeholder="Select account"
+                appendTo="body"
+              />
+            </span>
+            <span class="numeric">
+              <p-inputNumber formControlName="debitAmount" mode="decimal" [minFractionDigits]="2" />
+            </span>
+            <span class="numeric">
+              <p-inputNumber formControlName="creditAmount" mode="decimal" [minFractionDigits]="2" />
+            </span>
+            <span>
+              <p-select
+                formControlName="costCenterId"
+                [options]="costCenterOptions()"
+                optionLabel="label"
+                optionValue="value"
+                appendTo="body"
+              />
+            </span>
+            @if (showTaxRate()) {
+              <span>
+                <p-select
+                  formControlName="taxRateId"
+                  [options]="taxRateOptions()"
+                  optionLabel="label"
+                  optionValue="value"
+                  appendTo="body"
+                />
+              </span>
+            }
+            @if (!readOnly()) {
+              <span class="actions">
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  [disabled]="linesArray.length <= 2"
+                  pTooltip="Remove line"
+                  (onClick)="removeLine(i)"
+                />
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      @if (!readOnly()) {
+        <p-button label="Add Line" icon="pi pi-plus" [text]="true" type="button" (onClick)="addLine()" />
+      }
+    </div>
+
+    <div class="form-actions">
+      @if (readOnly()) {
+        <p-button label="Back" severity="secondary" type="button" (onClick)="cancel()" />
+      } @else {
+        <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="cancel()" />
+        <p-button *appHasRight="saveRightCode()" label="Save" type="submit" [loading]="saving()" [disabled]="!canSave()" />
+      }
+    </div>
+  </form>
+
+  @if (isEditMode()) {
+    <div class="attachments-section">
+      <h3>Attachments</h3>
+
+      <p-table [value]="currentVoucher()?.attachments ?? []" dataKey="id">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>Uploaded</th>
+            <th class="actions">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-attachment>
+          <tr>
+            <td>{{ attachment.fileName }}</td>
+            <td>{{ (attachment.sizeBytes / 1024) | number: '1.0-1' }} KB</td>
+            <td>{{ attachment.uploadedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</td>
+            <td class="actions">
+              <p-button icon="pi pi-download" [text]="true" [rounded]="true" size="small" pTooltip="Download" (onClick)="downloadAttachment(attachment)" />
+              <p-button *appHasRight="RightCode.VouchersManageAttachments" icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" pTooltip="Delete" (onClick)="confirmDeleteAttachment(attachment)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4">No attachments yet.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <p-fileupload
+        *appHasRight="RightCode.VouchersManageAttachments"
+        #fileUpload
+        mode="basic"
+        name="file"
+        [customUpload]="true"
+        [auto]="true"
+        chooseLabel="Upload Attachment"
+        [disabled]="uploading()"
+        (uploadHandler)="onUpload($event, fileUpload)"
+      />
+    </div>
+  }
+</p-card>

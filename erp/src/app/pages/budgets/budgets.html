@@ -1,0 +1,120 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Budgets</h2>
+    <p-button *appHasRight="RightCode.BudgetsCreate" label="Add Budget" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <div class="filter-bar">
+    <div class="field">
+      <label for="filterYear">Year</label>
+      <p-inputnumber inputId="filterYear" [ngModel]="filterYear()" (ngModelChange)="filterYear.set($event)" [useGrouping]="false" placeholder="All years" />
+    </div>
+
+    <div class="field">
+      <label for="filterMonth">Month</label>
+      <p-select
+        inputId="filterMonth"
+        [ngModel]="filterMonth()"
+        (ngModelChange)="filterMonth.set($event)"
+        [options]="monthOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="All months"
+        [showClear]="true"
+      />
+    </div>
+
+    <p-button label="Filter" icon="pi pi-filter" severity="secondary" [outlined]="true" (onClick)="load()" [loading]="loading()" />
+  </div>
+
+  <p-table [value]="budgets()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Account</th>
+        <th>Year</th>
+        <th>Month</th>
+        <th class="numeric">Budgeted Amount</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-budget>
+      <tr>
+        <td>{{ budget.accountCode }} - {{ budget.accountName }}</td>
+        <td>{{ budget.year }}</td>
+        <td>{{ monthName(budget.month) }}</td>
+        <td class="numeric">{{ budget.budgetedAmount | number: '1.2-2' }}</td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.BudgetsEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(budget)" />
+          <p-button
+            *appHasRight="RightCode.BudgetsDelete"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            pTooltip="Delete"
+            (onClick)="confirmDelete(budget)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">No budgets yet. Add a budget to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingBudget() ? 'Edit Budget' : 'Add Budget'"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="budget-form">
+    <div class="field">
+      <label for="accountId">Account</label>
+      <p-select
+        inputId="accountId"
+        formControlName="accountId"
+        [options]="accountOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [filter]="true"
+        filterBy="label"
+      />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="year">Year</label>
+        <p-inputnumber inputId="year" formControlName="year" [useGrouping]="false" />
+      </div>
+
+      <div class="field">
+        <label for="month">Month</label>
+        <p-select
+          inputId="month"
+          formControlName="month"
+          [options]="monthOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="budgetedAmount">Budgeted Amount</label>
+      <p-inputnumber inputId="budgetedAmount" formControlName="budgetedAmount" mode="decimal" [minFractionDigits]="2" />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

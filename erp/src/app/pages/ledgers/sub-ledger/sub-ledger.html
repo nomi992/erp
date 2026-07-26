@@ -1,0 +1,56 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Sub-Ledger Aging</h2>
+  </div>
+
+  <div class="filter-bar">
+    <div class="type-toggle">
+      <p-button
+        label="Receivable"
+        [outlined]="type() !== 'Receivable'"
+        (onClick)="selectType('Receivable')"
+      />
+      <p-button
+        label="Payable"
+        [outlined]="type() !== 'Payable'"
+        (onClick)="selectType('Payable')"
+      />
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="load()" class="as-of-form">
+      <div class="field">
+        <label for="asOf">As Of</label>
+        <p-datepicker inputId="asOf" formControlName="asOf" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" />
+      </div>
+      <p-button label="Load" icon="pi pi-search" type="submit" [loading]="loading()" />
+    </form>
+  </div>
+
+  <p-table [value]="entries()" [loading]="loading()" dataKey="accountId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Account Code</th>
+        <th>Account Name</th>
+        <th class="numeric">Outstanding Balance</th>
+        <th>Last Activity Date</th>
+        <th class="numeric">Age (days)</th>
+        <th>Age Bucket</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-entry>
+      <tr>
+        <td>{{ entry.accountCode }}</td>
+        <td>{{ entry.accountName }}</td>
+        <td class="numeric">{{ entry.outstandingBalance | number: '1.2-2' }} {{ entry.outstandingBalanceNature }}</td>
+        <td>{{ entry.lastActivityDate ? (entry.lastActivityDate | date: 'mediumDate') : '—' }}</td>
+        <td class="numeric">{{ entry.ageInDays }}</td>
+        <td><p-tag [value]="entry.ageBucket" [severity]="severityFor(entry.ageBucket)" /></td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No outstanding {{ type() === 'Receivable' ? 'receivables' : 'payables' }} found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

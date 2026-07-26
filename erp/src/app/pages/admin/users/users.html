@@ -1,0 +1,190 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Users</h2>
+    <p-button *appHasRight="RightCode.UsersCreate" label="Add User" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  @if (isSystemAdmin()) {
+    <div class="filter">
+      <label for="tenantFilter">Tenant</label>
+      <p-select
+        inputId="tenantFilter"
+        [ngModel]="tenantFilter()"
+        (ngModelChange)="tenantFilter.set($event); onTenantFilterChange()"
+        [options]="tenantOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="All tenants"
+        [showClear]="true"
+      />
+    </div>
+  }
+
+  <p-table [value]="users()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Username</th>
+        @if (isSystemAdmin()) {
+          <th>Tenant</th>
+        }
+        <th>Role</th>
+        <th>Branches</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-user>
+      <tr>
+        <td>{{ user.username }}</td>
+        @if (isSystemAdmin()) {
+          <td>{{ user.tenantName }}</td>
+        }
+        <td>{{ user.role }}</td>
+        <td>
+          @for (branch of user.branches; track branch.id) {
+            <p-chip [label]="branch.name" />
+          } @empty {
+            <span class="muted">—</span>
+          }
+        </td>
+        <td>
+          <p-tag [value]="user.isActive ? 'Active' : 'Inactive'" [severity]="user.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.UsersEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(user)" />
+          <p-button *appHasRight="RightCode.UsersManageBranchAccess" icon="pi pi-building" [text]="true" [rounded]="true" size="small" pTooltip="Manage Branches" (onClick)="openBranchDialog(user)" />
+          <p-button
+            *appHasRight="RightCode.UsersEdit"
+            [icon]="user.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="user.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(user)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="isSystemAdmin() ? 6 : 5">No users yet. Add a user to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<!-- Create -->
+<p-dialog
+  [visible]="createDialogVisible()"
+  (visibleChange)="createDialogVisible.set($event)"
+  header="Add User"
+  [modal]="true"
+  [style]="{ width: '30rem' }"
+>
+  <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="user-form">
+    @if (isSystemAdmin()) {
+      <div class="field">
+        <label for="tenantId">Tenant</label>
+        <p-select
+          inputId="tenantId"
+          formControlName="tenantId"
+          [options]="tenantOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select a tenant"
+          (onChange)="onCreateTenantChange($event.value)"
+        />
+      </div>
+    }
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" type="text" pInputText formControlName="username" />
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <p-password inputId="password" formControlName="password" [feedback]="false" [toggleMask]="true" />
+    </div>
+
+    <div class="field">
+      <label for="role">Role</label>
+      <p-select inputId="role" formControlName="roleId" [options]="roleOptions()" optionLabel="label" optionValue="value" />
+    </div>
+
+    <div class="field">
+      <label for="branchIds">Branches</label>
+      <p-multiSelect
+        inputId="branchIds"
+        formControlName="branchIds"
+        [options]="createBranchOptions()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Select branches"
+        display="chip"
+      />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeCreateDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Edit -->
+<p-dialog
+  [visible]="editDialogVisible()"
+  (visibleChange)="editDialogVisible.set($event)"
+  [header]="'Edit User — ' + (editingUser()?.username ?? '')"
+  [modal]="true"
+  [style]="{ width: '26rem' }"
+>
+  <form [formGroup]="editForm" (ngSubmit)="submitEdit()" class="user-form">
+    <div class="field">
+      <label for="editRole">Role</label>
+      <p-select inputId="editRole" formControlName="roleId" [options]="roleOptions()" optionLabel="label" optionValue="value" />
+    </div>
+
+    <div class="field toggle-field">
+      <label for="editIsActive">Active</label>
+      <p-toggleswitch inputId="editIsActive" formControlName="isActive" />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeEditDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>
+
+<!-- Manage branches -->
+<p-dialog
+  [visible]="branchDialogVisible()"
+  (visibleChange)="branchDialogVisible.set($event)"
+  [header]="'Branch Access — ' + (managingUser()?.username ?? '')"
+  [modal]="true"
+  [style]="{ width: '26rem' }"
+>
+  <div class="branch-manage">
+    <div class="granted-branches">
+      @for (branch of managingUser()?.branches; track branch.id) {
+        <p-chip [label]="branch.name" [removable]="true" (onRemove)="revokeBranch(branch.id)" />
+      } @empty {
+        <span class="muted">No branches granted yet.</span>
+      }
+    </div>
+
+    <div class="grant-row">
+      <p-select
+        [ngModel]="selectedGrantBranchId()"
+        (ngModelChange)="selectedGrantBranchId.set($event)"
+        [options]="grantableBranches()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Select a branch to grant"
+      />
+      <p-button label="Grant" icon="pi pi-plus" [disabled]="selectedGrantBranchId() == null" (onClick)="grantBranch()" />
+    </div>
+  </div>
+</p-dialog>

@@ -1,0 +1,101 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>Roles</h2>
+    <p-button label="Add Role" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="roles()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        @if (isSystemAdmin()) {
+          <th>Tenant</th>
+        }
+        <th>Rights</th>
+        <th>Type</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-role>
+      <tr>
+        <td>{{ role.name }}</td>
+        <td>{{ role.description || '—' }}</td>
+        @if (isSystemAdmin()) {
+          <td>{{ role.tenantName || 'Global' }}</td>
+        }
+        <td>{{ role.rights.length }} right{{ role.rights.length === 1 ? '' : 's' }}</td>
+        <td>
+          <p-tag [value]="role.isSystemRole ? 'Built-in' : 'Custom'" [severity]="role.isSystemRole ? 'info' : 'success'" />
+        </td>
+        <td class="actions">
+          <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(role)" />
+          <p-button
+            icon="pi pi-trash"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            severity="danger"
+            pTooltip="Delete"
+            [disabled]="role.isSystemRole"
+            (onClick)="deleteRole(role)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="isSystemAdmin() ? 6 : 5">No roles yet. Add a role to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingRole() ? 'Edit Role' : 'Add Role'"
+  [modal]="true"
+  [style]="{ width: '36rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="role-form">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <input id="description" type="text" pInputText formControlName="description" />
+    </div>
+
+    <div class="field">
+      <label>Rights</label>
+      <div class="rights-picker">
+        @for (group of rightGroups(); track group.module) {
+          <p-fieldset [legend]="group.module" [toggleable]="true">
+            @for (right of group.rights; track right.id) {
+              <div class="right-row">
+                <p-checkbox
+                  [binary]="true"
+                  [inputId]="'right-' + right.id"
+                  [ngModel]="isRightSelected(right.id)"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="toggleRight(right.id, $event)"
+                />
+                <label [for]="'right-' + right.id">{{ right.description }}</label>
+              </div>
+            }
+          </p-fieldset>
+        }
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

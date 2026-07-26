@@ -1,0 +1,10 @@
+<div class="shell">
+  <app-topbar (toggleSidebar)="toggleSidebar()" />
+  <div class="body">
+    @if (sidebarOpen()) {
+      <div class="backdrop" (click)="closeSidebar()"></div>
+    }
+    <app-sidebar [open]="sidebarOpen()" />
+    <app-body />
+  </div>
+</div>
