@@ -23,6 +23,7 @@ using erp_backend.Rights;
 using erp_backend.Roles;
 using erp_backend.TaxRates;
 using erp_backend.Tenants;
+using erp_backend.Transfers;
 using erp_backend.UnitsOfMeasure;
 using erp_backend.Users;
 using erp_backend.Vouchers;
@@ -99,6 +100,7 @@ builder.Services.AddScoped<IStockAccountMappingRepository, StockAccountMappingRe
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IPartnerPaymentRepository, PartnerPaymentRepository>();
+builder.Services.AddScoped<IStockTransferRepository, StockTransferRepository>();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();

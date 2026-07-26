@@ -53,6 +53,8 @@ public class AppDbContext : DbContext
     public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
     public DbSet<PartnerPaymentHeader> PartnerPaymentHeaders => Set<PartnerPaymentHeader>();
     public DbSet<PartnerPaymentAllocation> PartnerPaymentAllocations => Set<PartnerPaymentAllocation>();
+    public DbSet<StockTransferHeader> StockTransferHeaders => Set<StockTransferHeader>();
+    public DbSet<StockTransferLine> StockTransferLines => Set<StockTransferLine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -473,6 +475,32 @@ public class AppDbContext : DbContext
             entity.Property(a => a.AllocatedAmount).HasColumnType("decimal(18,2)");
 
             entity.HasOne(a => a.InvoiceHeader).WithMany().HasForeignKey(a => a.InvoiceHeaderId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StockTransferHeader>(entity =>
+        {
+            entity.HasIndex(t => new { t.TenantId, t.BranchId, t.TransferNo }).IsUnique();
+
+            entity.HasOne(t => t.SourceWarehouse).WithMany().HasForeignKey(t => t.SourceWarehouseId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(t => t.DestinationWarehouse).WithMany().HasForeignKey(t => t.DestinationWarehouseId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(t => t.DestinationBranch).WithMany().HasForeignKey(t => t.DestinationBranchId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(t => t.Lines)
+                .WithOne(l => l.StockTransferHeader)
+                .HasForeignKey(l => l.StockTransferHeaderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StockTransferLine>(entity =>
+        {
+            entity.HasIndex(l => new { l.TenantId, l.BranchId });
+            entity.Property(l => l.Qty).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.BaseQty).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.UnitCostAtTransfer).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.ReceivedBaseQty).HasColumnType("decimal(18,4)");
+
+            entity.HasOne(l => l.ProductVariant).WithMany().HasForeignKey(l => l.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(l => l.UnitOfMeasure).WithMany().HasForeignKey(l => l.UnitOfMeasureId).OnDelete(DeleteBehavior.Restrict);
         });
 
         ApplyTenantBranchQueryFilters(modelBuilder);
