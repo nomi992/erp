@@ -55,6 +55,8 @@ public class AppDbContext : DbContext
     public DbSet<PartnerPaymentAllocation> PartnerPaymentAllocations => Set<PartnerPaymentAllocation>();
     public DbSet<StockTransferHeader> StockTransferHeaders => Set<StockTransferHeader>();
     public DbSet<StockTransferLine> StockTransferLines => Set<StockTransferLine>();
+    public DbSet<StockAdjustmentHeader> StockAdjustmentHeaders => Set<StockAdjustmentHeader>();
+    public DbSet<StockAdjustmentLine> StockAdjustmentLines => Set<StockAdjustmentLine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -501,6 +503,29 @@ public class AppDbContext : DbContext
 
             entity.HasOne(l => l.ProductVariant).WithMany().HasForeignKey(l => l.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(l => l.UnitOfMeasure).WithMany().HasForeignKey(l => l.UnitOfMeasureId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StockAdjustmentHeader>(entity =>
+        {
+            entity.HasIndex(a => new { a.TenantId, a.BranchId, a.AdjustmentNo }).IsUnique();
+
+            entity.HasOne(a => a.Warehouse).WithMany().HasForeignKey(a => a.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(a => a.LinkedVoucher).WithMany().HasForeignKey(a => a.LinkedVoucherId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(a => a.Lines)
+                .WithOne(l => l.StockAdjustmentHeader)
+                .HasForeignKey(l => l.StockAdjustmentHeaderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StockAdjustmentLine>(entity =>
+        {
+            entity.HasIndex(l => new { l.TenantId, l.BranchId });
+            entity.Property(l => l.BaseQty).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.UnitCost).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.LineValue).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(l => l.ProductVariant).WithMany().HasForeignKey(l => l.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
         });
 
         ApplyTenantBranchQueryFilters(modelBuilder);
