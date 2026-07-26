@@ -9,6 +9,7 @@ using erp_backend.CostCenters;
 using erp_backend.Data;
 using erp_backend.FiscalPeriods;
 using erp_backend.Inventory;
+using erp_backend.Invoices;
 using erp_backend.Ledgers;
 using erp_backend.Middleware;
 using erp_backend.Models;
@@ -95,6 +96,7 @@ builder.Services.AddScoped<IBusinessPartnerRepository, BusinessPartnerRepository
 builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IStockAccountMappingRepository, StockAccountMappingRepository>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();

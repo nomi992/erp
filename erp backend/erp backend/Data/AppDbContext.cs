@@ -49,6 +49,8 @@ public class AppDbContext : DbContext
     public DbSet<StockAccountMapping> StockAccountMappings => Set<StockAccountMapping>();
     public DbSet<StockLedgerEntry> StockLedgerEntries => Set<StockLedgerEntry>();
     public DbSet<StockBalance> StockBalances => Set<StockBalance>();
+    public DbSet<InvoiceHeader> InvoiceHeaders => Set<InvoiceHeader>();
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -411,6 +413,41 @@ public class AppDbContext : DbContext
 
             entity.HasOne(b => b.ProductVariant).WithMany().HasForeignKey(b => b.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(b => b.Warehouse).WithMany().HasForeignKey(b => b.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<InvoiceHeader>(entity =>
+        {
+            entity.HasIndex(h => new { h.TenantId, h.BranchId, h.InvoiceType, h.InvoiceNo }).IsUnique();
+            entity.HasIndex(h => new { h.TenantId, h.BranchId, h.InvoiceType, h.Status });
+            entity.Property(h => h.AmountPaid).HasColumnType("decimal(18,2)");
+            entity.Property(h => h.OutstandingAmount).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(h => h.Partner).WithMany().HasForeignKey(h => h.PartnerId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(h => h.Warehouse).WithMany().HasForeignKey(h => h.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(h => h.ReferenceInvoice).WithMany().HasForeignKey(h => h.ReferenceInvoiceId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(h => h.LinkedVoucher).WithMany().HasForeignKey(h => h.LinkedVoucherId).OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(h => h.Lines)
+                .WithOne(l => l.InvoiceHeader)
+                .HasForeignKey(l => l.InvoiceHeaderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InvoiceLine>(entity =>
+        {
+            entity.HasIndex(l => new { l.TenantId, l.BranchId });
+            entity.Property(l => l.Qty).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.BaseQty).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.UnitAmount).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.UnitCostAtSale).HasColumnType("decimal(18,4)");
+            entity.Property(l => l.TaxAmount).HasColumnType("decimal(18,2)");
+            entity.Property(l => l.LineTotal).HasColumnType("decimal(18,2)");
+            entity.Property(l => l.FulfilledBaseQty).HasColumnType("decimal(18,4)");
+
+            entity.HasOne(l => l.ProductVariant).WithMany().HasForeignKey(l => l.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(l => l.UnitOfMeasure).WithMany().HasForeignKey(l => l.UnitOfMeasureId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(l => l.TaxRate).WithMany().HasForeignKey(l => l.TaxRateId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(l => l.ReferenceInvoiceLine).WithMany().HasForeignKey(l => l.ReferenceInvoiceLineId).OnDelete(DeleteBehavior.Restrict);
         });
 
         ApplyTenantBranchQueryFilters(modelBuilder);
