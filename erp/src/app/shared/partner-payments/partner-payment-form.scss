@@ -1,0 +1,84 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.header-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 12rem;
+
+  p-select,
+  p-datepicker,
+  p-inputnumber {
+    width: 100%;
+  }
+}
+
+.lines-section {
+  margin-top: 0.5rem;
+
+  h3 {
+    margin: 0 0 0.5rem;
+  }
+}
+
+.totals {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+
+  span {
+    color: var(--p-text-muted-color);
+    margin-right: 0.35rem;
+  }
+
+  .mismatch {
+    color: var(--p-red-500);
+    font-weight: 600;
+  }
+}
+
+.status-summary {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--p-content-border-color);
+
+  span {
+    color: var(--p-text-muted-color);
+    margin-right: 0.35rem;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

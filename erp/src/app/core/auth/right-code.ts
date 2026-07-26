@@ -44,4 +44,83 @@ export enum RightCode {
   UsersManageBranchAccess = 'Users.ManageBranchAccess',
 
   RolesManage = 'Roles.Manage',
+
+  // --- Stock/Inventory & Invoice Management ---
+  ProductCategoriesCreate = 'ProductCategories.Create',
+  ProductCategoriesEdit = 'ProductCategories.Edit',
+
+  UnitsOfMeasureCreate = 'UnitsOfMeasure.Create',
+  UnitsOfMeasureEdit = 'UnitsOfMeasure.Edit',
+
+  ProductsCreate = 'Products.Create',
+  ProductsEdit = 'Products.Edit',
+
+  WarehousesCreate = 'Warehouses.Create',
+  WarehousesEdit = 'Warehouses.Edit',
+
+  StockAccountMappingsManage = 'StockAccountMappings.Manage',
+
+  SuppliersCreate = 'Suppliers.Create',
+  SuppliersEdit = 'Suppliers.Edit',
+  CustomersCreate = 'Customers.Create',
+  CustomersEdit = 'Customers.Edit',
+
+  PurchaseOrdersCreate = 'PurchaseOrders.Create',
+  PurchaseOrdersEdit = 'PurchaseOrders.Edit',
+  PurchaseOrdersSubmit = 'PurchaseOrders.Submit',
+  PurchaseOrdersApprove = 'PurchaseOrders.Approve',
+  PurchaseOrdersReject = 'PurchaseOrders.Reject',
+  PurchaseOrdersCancel = 'PurchaseOrders.Cancel',
+
+  SalesOrdersCreate = 'SalesOrders.Create',
+  SalesOrdersEdit = 'SalesOrders.Edit',
+  SalesOrdersSubmit = 'SalesOrders.Submit',
+  SalesOrdersApprove = 'SalesOrders.Approve',
+  SalesOrdersReject = 'SalesOrders.Reject',
+  SalesOrdersCancel = 'SalesOrders.Cancel',
+
+  PurchaseInvoicesCreate = 'PurchaseInvoices.Create',
+  PurchaseInvoicesEdit = 'PurchaseInvoices.Edit',
+  PurchaseInvoicesSubmit = 'PurchaseInvoices.Submit',
+  PurchaseInvoicesApprove = 'PurchaseInvoices.Approve',
+  PurchaseInvoicesReject = 'PurchaseInvoices.Reject',
+
+  SalesInvoicesCreate = 'SalesInvoices.Create',
+  SalesInvoicesEdit = 'SalesInvoices.Edit',
+  SalesInvoicesSubmit = 'SalesInvoices.Submit',
+  SalesInvoicesApprove = 'SalesInvoices.Approve',
+  SalesInvoicesReject = 'SalesInvoices.Reject',
+
+  PurchaseReturnsCreate = 'PurchaseReturns.Create',
+  PurchaseReturnsEdit = 'PurchaseReturns.Edit',
+  PurchaseReturnsSubmit = 'PurchaseReturns.Submit',
+  PurchaseReturnsApprove = 'PurchaseReturns.Approve',
+  PurchaseReturnsReject = 'PurchaseReturns.Reject',
+
+  SaleReturnsCreate = 'SaleReturns.Create',
+  SaleReturnsEdit = 'SaleReturns.Edit',
+  SaleReturnsSubmit = 'SaleReturns.Submit',
+  SaleReturnsApprove = 'SaleReturns.Approve',
+  SaleReturnsReject = 'SaleReturns.Reject',
+
+  CustomerReceiptsCreate = 'CustomerReceipts.Create',
+  CustomerReceiptsSubmit = 'CustomerReceipts.Submit',
+  CustomerReceiptsApprove = 'CustomerReceipts.Approve',
+  CustomerReceiptsReject = 'CustomerReceipts.Reject',
+
+  SupplierPaymentsCreate = 'SupplierPayments.Create',
+  SupplierPaymentsSubmit = 'SupplierPayments.Submit',
+  SupplierPaymentsApprove = 'SupplierPayments.Approve',
+  SupplierPaymentsReject = 'SupplierPayments.Reject',
+
+  StockTransfersCreate = 'StockTransfers.Create',
+  StockTransfersSubmit = 'StockTransfers.Submit',
+  StockTransfersApprove = 'StockTransfers.Approve',
+  StockTransfersReject = 'StockTransfers.Reject',
+  StockTransfersReceive = 'StockTransfers.Receive',
+
+  StockAdjustmentsCreate = 'StockAdjustments.Create',
+  StockAdjustmentsSubmit = 'StockAdjustments.Submit',
+  StockAdjustmentsApprove = 'StockAdjustments.Approve',
+  StockAdjustmentsReject = 'StockAdjustments.Reject',
 }

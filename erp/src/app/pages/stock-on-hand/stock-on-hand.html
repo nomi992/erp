@@ -1,0 +1,49 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Stock On-Hand</h2>
+  </div>
+
+  <form [formGroup]="filterForm" class="filters">
+    <p-select formControlName="warehouseId" [options]="warehouseOptions()" optionLabel="label" optionValue="value" (onChange)="load()" />
+    <div class="checkbox-field">
+      <p-checkbox formControlName="lowStockOnly" [binary]="true" inputId="lowStockOnly" (onChange)="load()" />
+      <label for="lowStockOnly">Low stock only</label>
+    </div>
+  </form>
+
+  <p-table [value]="items()" [loading]="loading()" dataKey="productVariantId">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Product / Variant</th>
+        <th>Warehouse</th>
+        <th>Qty On Hand</th>
+        <th>Average Cost</th>
+        <th>Stock Value</th>
+        <th>Reorder Level</th>
+        <th>Status</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.productName }} - {{ item.productVariantName }}</td>
+        <td>{{ item.warehouseName }}</td>
+        <td>{{ item.quantityOnHand | number: '1.0-4' }}</td>
+        <td>{{ item.averageCost | number: '1.2-4' }}</td>
+        <td>{{ item.stockValue | number: '1.2-2' }}</td>
+        <td>{{ item.reorderLevel ?? '—' }}</td>
+        <td>
+          @if (item.isLowStock) {
+            <p-tag value="Low Stock" severity="danger" />
+          } @else {
+            <p-tag value="OK" severity="success" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7">No stock balances yet.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

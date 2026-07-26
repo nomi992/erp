@@ -1,0 +1,49 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Products</h2>
+    <p-button *appHasRight="RightCode.ProductsCreate" label="Add Product" icon="pi pi-plus" (onClick)="createProduct()" />
+  </div>
+
+  <p-table [value]="products()" [loading]="loading()" dataKey="id" [paginator]="true" [rows]="20">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>SKU</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Base UOM</th>
+        <th>Variants</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-product>
+      <tr>
+        <td>{{ product.sku }}</td>
+        <td>{{ product.name }}</td>
+        <td>{{ product.productCategoryName ?? '—' }}</td>
+        <td>{{ product.baseUnitOfMeasureCode }}</td>
+        <td>{{ product.hasVariants ? product.variants.length : '—' }}</td>
+        <td>
+          <p-tag [value]="product.isActive ? 'Active' : 'Inactive'" [severity]="product.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.ProductsEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="editProduct(product)" />
+          <p-button
+            *appHasRight="RightCode.ProductsEdit"
+            [icon]="product.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="product.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(product)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7">No products yet. Add a product to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

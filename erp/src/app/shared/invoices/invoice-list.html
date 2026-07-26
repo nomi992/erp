@@ -1,0 +1,91 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>{{ config().title }}</h2>
+    <p-button *appHasRight="config().createRight" [label]="'New ' + config().singularLabel" icon="pi pi-plus" (onClick)="create()" />
+  </div>
+
+  <form [formGroup]="filterForm" class="filters">
+    <p-select formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" placeholder="Status" (onChange)="load()" />
+    <p-datepicker formControlName="from" placeholder="From" dateFormat="yy-mm-dd" [showIcon]="true" (onSelect)="load()" />
+    <p-datepicker formControlName="to" placeholder="To" dateFormat="yy-mm-dd" [showIcon]="true" (onSelect)="load()" />
+    <p-button label="Clear" severity="secondary" [text]="true" type="button" (onClick)="clearFilters()" />
+  </form>
+
+  <p-table
+    [value]="invoices()"
+    [loading]="loading()"
+    [lazy]="true"
+    (onLazyLoad)="load($event)"
+    [paginator]="true"
+    [rows]="rows()"
+    [totalRecords]="totalRecords()"
+    [rowsPerPageOptions]="[25, 50, 100]"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Number</th>
+        <th>Partner</th>
+        <th>Date</th>
+        <th>Due Date</th>
+        <th>Total</th>
+        @if (!config().isOrder) {
+          <th>Outstanding</th>
+          <th>Payment</th>
+        } @else {
+          <th>Fulfillment</th>
+        }
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td><a class="link" (click)="view(item)">{{ item.invoiceNo }}</a></td>
+        <td>{{ item.partnerName }}</td>
+        <td>{{ item.date | date: 'mediumDate' }}</td>
+        <td>{{ item.dueDate | date: 'mediumDate' }}</td>
+        <td>{{ item.totalAmount | number: '1.2-2' }}</td>
+        @if (!config().isOrder) {
+          <td>{{ item.outstandingAmount | number: '1.2-2' }}</td>
+          <td>
+            <p-tag [value]="item.paymentStatus" [severity]="paymentStatusSeverity(item.paymentStatus)" />
+          </td>
+        } @else {
+          <td>
+            @if (item.fulfillmentStatus) {
+              <p-tag [value]="item.fulfillmentStatus" severity="info" />
+            }
+          </td>
+        }
+        <td>
+          <p-tag [value]="item.status" [severity]="statusSeverity(item.status)" />
+        </td>
+        <td class="actions">
+          <p-button icon="pi pi-eye" [text]="true" [rounded]="true" size="small" pTooltip="View" (onClick)="view(item)" />
+          @if (item.status === 'Draft') {
+            <p-button *appHasRight="config().editRight" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="edit(item)" />
+            <p-button *appHasRight="config().submitRight" icon="pi pi-send" [text]="true" [rounded]="true" size="small" pTooltip="Submit" (onClick)="submit(item)" />
+          }
+          @if (item.status === 'PendingApproval') {
+            <p-button *appHasRight="config().approveRight" icon="pi pi-check" [text]="true" [rounded]="true" size="small" severity="success" pTooltip="Approve" (onClick)="approve(item)" />
+            <p-button *appHasRight="config().rejectRight" icon="pi pi-times" [text]="true" [rounded]="true" size="small" severity="danger" pTooltip="Reject" (onClick)="reject(item)" />
+          }
+          @if (config().isOrder && item.status === 'Posted' && item.fulfillmentStatus !== 'Fulfilled' && config().cancelRight) {
+            <p-button icon="pi pi-ban" [text]="true" [rounded]="true" size="small" severity="danger" pTooltip="Cancel" (onClick)="confirmCancel(item)" />
+          }
+          @if (!config().isOrder && (item.status === 'Draft' || item.status === 'PendingApproval') && config().cancelRight) {
+            <p-button icon="pi pi-ban" [text]="true" [rounded]="true" size="small" severity="danger" pTooltip="Cancel" (onClick)="confirmCancel(item)" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="config().isOrder ? 7 : 8">No {{ config().title.toLowerCase() }} yet.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

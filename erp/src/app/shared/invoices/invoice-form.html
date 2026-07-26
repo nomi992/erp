@@ -1,0 +1,182 @@
+<p-confirmDialog />
+
+<p-card>
+  <div class="toolbar">
+    <h2>{{ current() ? current()!.invoiceNo : 'New ' + config().singularLabel }}</h2>
+    @if (current()) {
+      <p-tag [value]="current()!.status" />
+    }
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="header-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="partnerId">{{ config().isPurchaseSide ? 'Supplier' : 'Customer' }}</label>
+        <p-select inputId="partnerId" formControlName="partnerId" [options]="partnerOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+      </div>
+      <div class="field">
+        <label for="warehouseId">Warehouse</label>
+        <p-select inputId="warehouseId" formControlName="warehouseId" [options]="warehouseOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+      </div>
+      <div class="field">
+        <label for="date">Date</label>
+        <p-datepicker inputId="date" formControlName="date" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+    </div>
+
+    @if (config().isOrder) {
+      <div class="field-row">
+        <div class="field">
+          <label for="requestedDeliveryDate">Requested Delivery Date</label>
+          <p-datepicker inputId="requestedDeliveryDate" formControlName="requestedDeliveryDate" dateFormat="yy-mm-dd" [showIcon]="true" />
+        </div>
+      </div>
+    } @else {
+      <div class="field-row">
+        <div class="field">
+          <label for="paymentMode">Payment Mode</label>
+          <p-select inputId="paymentMode" formControlName="paymentMode" [options]="paymentModeOptions" optionLabel="label" optionValue="value" />
+        </div>
+        <div class="field">
+          <label for="paymentTermDays">Payment Term (days)</label>
+          <p-inputNumber inputId="paymentTermDays" formControlName="paymentTermDays" [min]="0" />
+        </div>
+        <div class="field">
+          <label for="externalReferenceNo">External Reference No.</label>
+          <input id="externalReferenceNo" type="text" pInputText formControlName="externalReferenceNo" />
+        </div>
+      </div>
+    }
+
+    @if (config().referenceInvoiceType) {
+      <div class="field-row">
+        <div class="field">
+          <label for="referenceInvoiceId">{{ config().referenceLabel }}</label>
+          <p-select
+            inputId="referenceInvoiceId"
+            formControlName="referenceInvoiceId"
+            [options]="referenceOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [filter]="true"
+            [showClear]="true"
+            (onChange)="onReferenceChange()"
+          />
+        </div>
+        @if (referenceDoc() && !readOnly()) {
+          <p-button label="Copy Lines from Reference" icon="pi pi-copy" [text]="true" type="button" (onClick)="copyLinesFromReference()" />
+        }
+      </div>
+    }
+
+    <div class="field">
+      <label for="narration">Narration</label>
+      <textarea id="narration" pTextarea formControlName="narration" rows="2"></textarea>
+    </div>
+
+    <div class="lines-section">
+      <div class="sub-section-header">
+        <h3>Lines</h3>
+        @if (!readOnly()) {
+          <p-button label="Add Line" icon="pi pi-plus" size="small" [text]="true" type="button" (onClick)="addLine()" />
+        }
+      </div>
+
+      <p-table [value]="linesArray.controls">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Product / Variant</th>
+            <th>UOM</th>
+            <th>Qty</th>
+            <th>Unit Amount</th>
+            <th>Tax</th>
+            @if (config().isOrder) {
+              <th>Fulfilled</th>
+            }
+            <th>Line Total</th>
+            @if (!readOnly()) {
+              <th></th>
+            }
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-lineGroup let-i="rowIndex">
+          <tr [formGroup]="lineGroup">
+            <td>
+              <p-select formControlName="productVariantId" [options]="variantOptions()" optionLabel="label" optionValue="value" [filter]="true" (onChange)="onVariantChange(i)" />
+            </td>
+            <td>
+              <p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" />
+            </td>
+            <td><p-inputNumber formControlName="qty" [minFractionDigits]="0" [maxFractionDigits]="4" /></td>
+            <td><p-inputNumber formControlName="unitAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
+            <td>
+              <p-select formControlName="taxRateId" [options]="taxRateOptions()" optionLabel="label" optionValue="value" />
+            </td>
+            @if (config().isOrder && current()) {
+              <td>
+                {{ current()!.lines[i]?.fulfilledBaseQty ?? 0 }} / {{ current()!.lines[i]?.baseQty ?? 0 }}
+              </td>
+            } @else if (config().isOrder) {
+              <td>—</td>
+            }
+            <td>{{ lineTotal(lineGroup) | number: '1.2-2' }}</td>
+            @if (!readOnly()) {
+              <td>
+                <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" type="button" (onClick)="removeLine(i)" />
+              </td>
+            }
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="totals">
+        <div><span>Net:</span> {{ totalNet() | number: '1.2-2' }}</div>
+        <div><span>Tax:</span> {{ totalTax() | number: '1.2-2' }}</div>
+        <div class="grand-total"><span>Total:</span> {{ totalAmount() | number: '1.2-2' }}</div>
+      </div>
+    </div>
+
+    @if (current(); as inv) {
+      <div class="status-summary">
+        @if (!config().isOrder) {
+          <div><span>Amount Paid:</span> {{ inv.amountPaid | number: '1.2-2' }}</div>
+          <div><span>Outstanding:</span> {{ inv.outstandingAmount | number: '1.2-2' }}</div>
+          <div><span>Payment Status:</span> <p-tag [value]="inv.paymentStatus" /></div>
+          <div><span>Due Date:</span> {{ inv.dueDate | date: 'mediumDate' }}</div>
+        } @else if (inv.fulfillmentStatus) {
+          <div><span>Fulfillment Status:</span> <p-tag [value]="inv.fulfillmentStatus" severity="info" /></div>
+        }
+        @if (inv.linkedVoucherNo) {
+          <div><span>GL Voucher:</span> {{ inv.linkedVoucherNo }}</div>
+        }
+      </div>
+    }
+
+    <div class="form-actions">
+      <p-button label="Back" severity="secondary" [text]="true" type="button" (onClick)="cancelForm()" />
+
+      @if (current(); as inv) {
+        @if (inv.status === 'PendingApproval') {
+          <p-button *appHasRight="config().approveRight" label="Approve" severity="success" type="button" (onClick)="approve()" />
+          <p-button *appHasRight="config().rejectRight" label="Reject" severity="danger" type="button" (onClick)="reject()" />
+        }
+        @if (inv.status === 'Draft') {
+          <p-button *appHasRight="config().submitRight" label="Submit for Approval" type="button" (onClick)="submitForApproval()" />
+        }
+        @if (config().isOrder && inv.status === 'Posted' && inv.fulfillmentStatus !== 'Fulfilled' && config().cancelRight) {
+          <p-button label="Cancel Order" severity="danger" [text]="true" type="button" (onClick)="confirmCancelDocument()" />
+        }
+      }
+
+      @if (!readOnly()) {
+        <p-button
+          label="Save"
+          type="submit"
+          [loading]="saving()"
+          [disabled]="!canSave()"
+          *appHasRight="invoiceId() ? config().editRight : config().createRight"
+        />
+      }
+    </div>
+  </form>
+</p-card>

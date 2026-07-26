@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.checkbox-row {
+  gap: 2rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 12rem;
+
+  p-select,
+  p-inputnumber {
+    width: 100%;
+  }
+}
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sub-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--p-content-border-color);
+}
+
+.sub-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

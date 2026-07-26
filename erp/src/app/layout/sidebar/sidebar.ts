@@ -70,6 +70,47 @@ export class Sidebar {
       ],
     },
     {
+      label: 'Inventory Setup',
+      items: [
+        { label: 'Products', icon: 'pi pi-box', route: '/products' },
+        { label: 'Product Categories', icon: 'pi pi-tags', route: '/product-categories' },
+        { label: 'Units of Measure', icon: 'pi pi-arrows-h', route: '/units-of-measure' },
+        { label: 'Warehouses', icon: 'pi pi-warehouse', route: '/warehouses' },
+        { label: 'Suppliers', icon: 'pi pi-truck', route: '/suppliers' },
+        { label: 'Customers', icon: 'pi pi-users', route: '/customers' },
+        { label: 'Stock Account Mappings', icon: 'pi pi-link', route: '/stock-account-mappings' },
+      ],
+    },
+    {
+      label: 'Purchasing',
+      items: [
+        { label: 'Purchase Orders', icon: 'pi pi-shopping-cart', route: '/purchase-orders' },
+        { label: 'Purchase Invoices', icon: 'pi pi-file-import', route: '/purchase-invoices' },
+        { label: 'Purchase Returns', icon: 'pi pi-replay', route: '/purchase-returns' },
+        { label: 'Supplier Payments', icon: 'pi pi-money-bill', route: '/supplier-payments' },
+        { label: 'AP Aging', icon: 'pi pi-hourglass', route: '/accounts-payable-aging' },
+      ],
+    },
+    {
+      label: 'Sales',
+      items: [
+        { label: 'Sales Orders', icon: 'pi pi-shopping-cart', route: '/sales-orders' },
+        { label: 'Sales Invoices', icon: 'pi pi-file-export', route: '/sales-invoices' },
+        { label: 'Sale Returns', icon: 'pi pi-replay', route: '/sale-returns' },
+        { label: 'Customer Receipts', icon: 'pi pi-wallet', route: '/customer-receipts' },
+        { label: 'AR Aging', icon: 'pi pi-hourglass', route: '/accounts-receivable-aging' },
+      ],
+    },
+    {
+      label: 'Stock',
+      items: [
+        { label: 'Stock Transfers', icon: 'pi pi-arrow-right-arrow-left', route: '/stock-transfers' },
+        { label: 'Stock Adjustments', icon: 'pi pi-sliders-h', route: '/stock-adjustments' },
+        { label: 'Stock Ledger', icon: 'pi pi-book', route: '/stock-ledger' },
+        { label: 'Stock On-Hand', icon: 'pi pi-chart-bar', route: '/stock-on-hand' },
+      ],
+    },
+    {
       label: 'Administration',
       items: [
         { label: 'Tenants', icon: 'pi pi-globe', route: '/admin/tenants', roles: ['SystemAdmin'] },

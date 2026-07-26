@@ -1,0 +1,55 @@
+<p-card>
+  <div class="toolbar">
+    <h2>{{ config().title }}</h2>
+    <p-button *appHasRight="config().createRight" [label]="'New ' + config().singularLabel" icon="pi pi-plus" (onClick)="create()" />
+  </div>
+
+  <p-table
+    [value]="payments()"
+    [loading]="loading()"
+    [lazy]="true"
+    (onLazyLoad)="load($event)"
+    [paginator]="true"
+    [rows]="rows()"
+    [totalRecords]="totalRecords()"
+    [rowsPerPageOptions]="[25, 50, 100]"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Number</th>
+        <th>Partner</th>
+        <th>Date</th>
+        <th>Total Amount</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td><a class="link" (click)="view(item)">{{ item.paymentNo }}</a></td>
+        <td>{{ item.partnerName }}</td>
+        <td>{{ item.date | date: 'mediumDate' }}</td>
+        <td>{{ item.totalAmount | number: '1.2-2' }}</td>
+        <td>
+          <p-tag [value]="item.status" [severity]="statusSeverity(item.status)" />
+        </td>
+        <td class="actions">
+          <p-button icon="pi pi-eye" [text]="true" [rounded]="true" size="small" pTooltip="View" (onClick)="view(item)" />
+          @if (item.status === 'Draft') {
+            <p-button *appHasRight="config().submitRight" icon="pi pi-send" [text]="true" [rounded]="true" size="small" pTooltip="Submit" (onClick)="submit(item)" />
+          }
+          @if (item.status === 'PendingApproval') {
+            <p-button *appHasRight="config().approveRight" icon="pi pi-check" [text]="true" [rounded]="true" size="small" severity="success" pTooltip="Approve" (onClick)="approve(item)" />
+            <p-button *appHasRight="config().rejectRight" icon="pi pi-times" [text]="true" [rounded]="true" size="small" severity="danger" pTooltip="Reject" (onClick)="reject(item)" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No {{ config().title.toLowerCase() }} yet.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

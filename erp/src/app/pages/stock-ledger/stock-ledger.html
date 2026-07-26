@@ -1,0 +1,53 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Stock Ledger</h2>
+  </div>
+
+  <form [formGroup]="filterForm" class="filters">
+    <p-select formControlName="warehouseId" [options]="warehouseOptions()" optionLabel="label" optionValue="value" (onChange)="load()" />
+  </form>
+
+  <p-table
+    [value]="entries()"
+    [loading]="loading()"
+    [lazy]="true"
+    (onLazyLoad)="load($event)"
+    [paginator]="true"
+    [rows]="rows()"
+    [totalRecords]="totalRecords()"
+    [rowsPerPageOptions]="[25, 50, 100]"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th>
+        <th>Product / Variant</th>
+        <th>Warehouse</th>
+        <th>Movement</th>
+        <th>In</th>
+        <th>Out</th>
+        <th>Unit Cost</th>
+        <th>Running Qty</th>
+        <th>Running Value</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-entry>
+      <tr>
+        <td>{{ entry.transactionDate | date: 'mediumDate' }}</td>
+        <td>{{ entry.productName }} - {{ entry.productVariantName }}</td>
+        <td>{{ entry.warehouseName }}</td>
+        <td>{{ entry.movementType }}</td>
+        <td>{{ entry.quantityIn | number: '1.0-4' }}</td>
+        <td>{{ entry.quantityOut | number: '1.0-4' }}</td>
+        <td>{{ entry.unitCost | number: '1.2-4' }}</td>
+        <td>{{ entry.runningQuantity | number: '1.0-4' }}</td>
+        <td>{{ entry.runningValue | number: '1.2-2' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="9">No stock movements yet.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

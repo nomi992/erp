@@ -1,0 +1,99 @@
+<p-card>
+  <div class="toolbar">
+    <h2>{{ current() ? current()!.paymentNo : 'New ' + config().singularLabel }}</h2>
+    @if (current()) {
+      <p-tag [value]="current()!.status" />
+    }
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="header-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="partnerId">{{ config().direction === 'CustomerReceipt' ? 'Customer' : 'Supplier' }}</label>
+        <p-select inputId="partnerId" formControlName="partnerId" [options]="partnerOptions()" optionLabel="label" optionValue="value" [filter]="true" (onChange)="onPartnerChange()" />
+      </div>
+      <div class="field">
+        <label for="date">Date</label>
+        <p-datepicker inputId="date" formControlName="date" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+      <div class="field">
+        <label for="bankOrCashAccountId">Bank / Cash Account</label>
+        <p-select inputId="bankOrCashAccountId" formControlName="bankOrCashAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+      </div>
+      <div class="field">
+        <label for="totalAmount">Total Amount</label>
+        <p-inputNumber inputId="totalAmount" formControlName="totalAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="narration">Narration</label>
+      <textarea id="narration" pTextarea formControlName="narration" rows="2"></textarea>
+    </div>
+
+    <div class="lines-section">
+      <h3>Allocate Against Outstanding Invoices</h3>
+
+      <p-table [value]="allocationsArray.controls">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Invoice No.</th>
+            <th>Outstanding</th>
+            <th>Amount to Allocate</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr [formGroup]="row">
+            <td>{{ row.controls.invoiceNo.value }}</td>
+            <td>{{ row.controls.outstandingAmount.value | number: '1.2-2' }}</td>
+            <td>
+              <p-inputNumber formControlName="allocatedAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="row.controls.outstandingAmount.value" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3">
+              @if (readOnly()) {
+                No allocations.
+              } @else {
+                Select a {{ config().direction === 'CustomerReceipt' ? 'customer' : 'supplier' }} to see outstanding invoices.
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="totals">
+        <div [class.mismatch]="amountMismatch()"><span>Allocated:</span> {{ allocatedTotal() | number: '1.2-2' }}</div>
+        <div><span>Payment Total:</span> {{ form.controls.totalAmount.value | number: '1.2-2' }}</div>
+      </div>
+    </div>
+
+    @if (current(); as p) {
+      <div class="status-summary">
+        @if (p.linkedVoucherNo) {
+          <div><span>GL Voucher:</span> {{ p.linkedVoucherNo }}</div>
+        }
+      </div>
+    }
+
+    <div class="form-actions">
+      <p-button label="Back" severity="secondary" [text]="true" type="button" (onClick)="cancelForm()" />
+
+      @if (current(); as p) {
+        @if (p.status === 'PendingApproval') {
+          <p-button *appHasRight="config().approveRight" label="Approve" severity="success" type="button" (onClick)="approve()" />
+          <p-button *appHasRight="config().rejectRight" label="Reject" severity="danger" type="button" (onClick)="reject()" />
+        }
+        @if (p.status === 'Draft') {
+          <p-button *appHasRight="config().submitRight" label="Submit for Approval" type="button" (onClick)="submitForApproval()" />
+        }
+      }
+
+      @if (!readOnly()) {
+        <p-button label="Save" type="submit" [loading]="saving()" [disabled]="!canSave()" *appHasRight="config().createRight" />
+      }
+    </div>
+  </form>
+</p-card>

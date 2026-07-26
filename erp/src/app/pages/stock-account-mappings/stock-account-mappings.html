@@ -1,0 +1,114 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Stock Account Mappings</h2>
+    <p-button *appHasRight="RightCode.StockAccountMappingsManage" label="Add Mapping" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="mappings()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Product Category</th>
+        <th>Inventory Asset</th>
+        <th>COGS</th>
+        <th>AP</th>
+        <th>AR</th>
+        <th>Sales Revenue</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-mapping>
+      <tr>
+        <td>{{ mapping.productCategoryName ?? '(Tenant-wide default)' }}</td>
+        <td>{{ mapping.inventoryAssetAccountId }}</td>
+        <td>{{ mapping.cogsAccountId }}</td>
+        <td>{{ mapping.accountsPayableAccountId }}</td>
+        <td>{{ mapping.accountsReceivableAccountId }}</td>
+        <td>{{ mapping.salesRevenueAccountId }}</td>
+        <td>
+          <p-tag [value]="mapping.isActive ? 'Active' : 'Inactive'" [severity]="mapping.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.StockAccountMappingsManage" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(mapping)" />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">
+          No stock account mappings yet. Add a tenant-wide default mapping to enable GL auto-posting for invoices and adjustments.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingMapping() ? 'Edit Stock Account Mapping' : 'Add Stock Account Mapping'"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+    <div class="field">
+      <label for="productCategoryId">Product Category</label>
+      <p-select inputId="productCategoryId" formControlName="productCategoryId" [options]="categoryOptions()" optionLabel="label" optionValue="value" />
+    </div>
+
+    <div class="field">
+      <label for="inventoryAssetAccountId">Inventory Asset Account</label>
+      <p-select inputId="inventoryAssetAccountId" formControlName="inventoryAssetAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="cogsAccountId">COGS Account</label>
+      <p-select inputId="cogsAccountId" formControlName="cogsAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="accountsPayableAccountId">Accounts Payable Account</label>
+      <p-select inputId="accountsPayableAccountId" formControlName="accountsPayableAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="salesRevenueAccountId">Sales Revenue Account</label>
+      <p-select inputId="salesRevenueAccountId" formControlName="salesRevenueAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="accountsReceivableAccountId">Accounts Receivable Account</label>
+      <p-select inputId="accountsReceivableAccountId" formControlName="accountsReceivableAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="cashOrBankAccountId">Default Cash/Bank Account</label>
+      <p-select inputId="cashOrBankAccountId" formControlName="cashOrBankAccountId" [options]="optionalAccountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="inputTaxAccountId">Input Tax Account</label>
+      <p-select inputId="inputTaxAccountId" formControlName="inputTaxAccountId" [options]="optionalAccountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="outputTaxAccountId">Output Tax Account</label>
+      <p-select inputId="outputTaxAccountId" formControlName="outputTaxAccountId" [options]="optionalAccountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="stockAdjustmentVarianceAccountId">Stock Adjustment Variance Account</label>
+      <p-select inputId="stockAdjustmentVarianceAccountId" formControlName="stockAdjustmentVarianceAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="field">
+      <label for="openingBalanceEquityAccountId">Opening Balance Equity Account</label>
+      <p-select inputId="openingBalanceEquityAccountId" formControlName="openingBalanceEquityAccountId" [options]="accountOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

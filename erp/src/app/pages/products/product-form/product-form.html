@@ -1,0 +1,282 @@
+<p-card>
+  <div class="toolbar">
+    <h2>{{ isEditMode ? 'Edit Product' : 'Add Product' }}</h2>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="product-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="sku">SKU</label>
+        <input id="sku" type="text" pInputText formControlName="sku" />
+      </div>
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" pInputText formControlName="name" />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="productCategoryId">Product Category</label>
+        <p-select inputId="productCategoryId" formControlName="productCategoryId" [options]="categoryOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+      </div>
+      <div class="field">
+        <label for="baseUnitOfMeasureId">Base Unit of Measure</label>
+        <p-select inputId="baseUnitOfMeasureId" formControlName="baseUnitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+      </div>
+      <div class="field">
+        <label for="reorderLevel">Reorder Level</label>
+        <p-inputNumber inputId="reorderLevel" formControlName="reorderLevel" [minFractionDigits]="0" [maxFractionDigits]="4" />
+      </div>
+    </div>
+
+    <div class="field-row checkbox-row">
+      <div class="field checkbox-field">
+        <p-checkbox formControlName="hasVariants" [binary]="true" inputId="hasVariants" [disabled]="isEditMode" />
+        <label for="hasVariants">This product has size/other variants</label>
+      </div>
+      <div class="field checkbox-field">
+        <p-checkbox formControlName="isStockTracked" [binary]="true" inputId="isStockTracked" />
+        <label for="isStockTracked">Track stock for this product</label>
+      </div>
+    </div>
+
+    @if (!isEditMode) {
+      <div class="sub-section">
+        <div class="sub-section-header">
+          <h3>Variants</h3>
+          <p-button label="Add Variant Row" icon="pi pi-plus" size="small" [text]="true" type="button" (onClick)="addVariantRow()" />
+        </div>
+
+        <p-table [value]="variantsArray.controls">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Variant Code</th>
+              <th>Barcode</th>
+              <th>Default</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-variantGroup let-i="rowIndex">
+            <tr [formGroup]="variantGroup">
+              <td><input type="text" pInputText formControlName="name" /></td>
+              <td><input type="text" pInputText formControlName="variantCode" /></td>
+              <td><input type="text" pInputText formControlName="barcode" /></td>
+              <td><p-checkbox formControlName="isDefault" [binary]="true" /></td>
+              <td>
+                <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" type="button" (onClick)="removeVariantRow(i)" />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <div class="sub-section-header">
+          <h3>UOM Conversions</h3>
+          <p-button label="Add Conversion Row" icon="pi pi-plus" size="small" [text]="true" type="button" (onClick)="addConversionRow()" />
+        </div>
+
+        <p-table [value]="conversionsArray.controls">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Unit of Measure</th>
+              <th>Conversion Factor (base units per 1)</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-conversionGroup let-i="rowIndex">
+            <tr [formGroup]="conversionGroup">
+              <td><p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" /></td>
+              <td><p-inputNumber formControlName="conversionFactor" [minFractionDigits]="0" [maxFractionDigits]="6" /></td>
+              <td>
+                <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" type="button" (onClick)="removeConversionRow(i)" />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="3">No alternate units yet — optional.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="cancel()" />
+      <p-button
+        label="Save"
+        type="submit"
+        [loading]="saving()"
+        *appHasRight="isEditMode ? RightCode.ProductsEdit : RightCode.ProductsCreate"
+      />
+    </div>
+  </form>
+
+  @if (isEditMode && product(); as p) {
+    <div class="sub-section">
+      <div class="sub-section-header">
+        <h3>Variants</h3>
+        <p-button *appHasRight="RightCode.ProductsEdit" label="Add Variant" icon="pi pi-plus" size="small" [text]="true" (onClick)="openAddVariantDialog()" />
+      </div>
+
+      <p-table [value]="p.variants" dataKey="id">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Name</th>
+            <th>Variant Code</th>
+            <th>Barcode</th>
+            <th>Default</th>
+            <th>Purchase</th>
+            <th>Retail</th>
+            <th>Sale</th>
+            <th>Status</th>
+            <th class="actions">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-variant>
+          <tr>
+            <td>{{ variant.name }}</td>
+            <td>{{ variant.variantCode }}</td>
+            <td>{{ variant.barcode ?? '—' }}</td>
+            <td>
+              @if (variant.isDefault) {
+                <p-tag value="Default" severity="info" />
+              }
+            </td>
+            <td>
+              @for (price of variant.prices; track price.id) {
+                @if (price.priceType === 'Purchase') {
+                  {{ price.amount | number: '1.2-2' }}
+                }
+              }
+            </td>
+            <td>
+              @for (price of variant.prices; track price.id) {
+                @if (price.priceType === 'Retail') {
+                  {{ price.amount | number: '1.2-2' }}
+                }
+              }
+            </td>
+            <td>
+              @for (price of variant.prices; track price.id) {
+                @if (price.priceType === 'Sale') {
+                  {{ price.amount | number: '1.2-2' }}
+                }
+              }
+            </td>
+            <td>
+              <p-tag [value]="variant.isActive ? 'Active' : 'Inactive'" [severity]="variant.isActive ? 'success' : 'danger'" />
+            </td>
+            <td class="actions">
+              <p-button *appHasRight="RightCode.ProductsEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditVariantDialog(variant)" />
+              <p-button *appHasRight="RightCode.ProductsEdit" icon="pi pi-tag" [text]="true" [rounded]="true" size="small" pTooltip="Manage Prices" (onClick)="openPriceDialog(variant)" />
+              <p-button
+                *appHasRight="RightCode.ProductsEdit"
+                [icon]="variant.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                [pTooltip]="variant.isActive ? 'Deactivate' : 'Activate'"
+                (onClick)="toggleVariantActive(variant)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="sub-section-header">
+        <h3>UOM Conversions</h3>
+        <p-button *appHasRight="RightCode.ProductsEdit" label="Add Conversion" icon="pi pi-plus" size="small" [text]="true" (onClick)="openAddConversionDialog()" />
+      </div>
+
+      <p-table [value]="p.uomConversions" dataKey="id">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Unit of Measure</th>
+            <th>Conversion Factor</th>
+            <th class="actions">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-conversion>
+          <tr>
+            <td>{{ conversion.unitOfMeasureCode }}</td>
+            <td>{{ conversion.conversionFactor }}</td>
+            <td class="actions">
+              <p-button *appHasRight="RightCode.ProductsEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditConversionDialog(conversion)" />
+              <p-button *appHasRight="RightCode.ProductsEdit" icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" pTooltip="Remove" (onClick)="deleteConversion(conversion)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3">No alternate units yet — optional.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</p-card>
+
+<p-dialog [visible]="variantDialogVisible()" (visibleChange)="variantDialogVisible.set($event)" [header]="editingVariant() ? 'Edit Variant' : 'Add Variant'" [modal]="true" [style]="{ width: '26rem' }">
+  <form [formGroup]="variantForm" (ngSubmit)="submitVariant()" class="dialog-form">
+    <div class="field">
+      <label for="variantName">Name</label>
+      <input id="variantName" type="text" pInputText formControlName="name" />
+    </div>
+    <div class="field">
+      <label for="variantCode">Variant Code</label>
+      <input id="variantCode" type="text" pInputText formControlName="variantCode" />
+    </div>
+    <div class="field">
+      <label for="variantBarcode">Barcode</label>
+      <input id="variantBarcode" type="text" pInputText formControlName="barcode" />
+    </div>
+    <div class="field checkbox-field">
+      <p-checkbox formControlName="isDefault" [binary]="true" inputId="variantIsDefault" />
+      <label for="variantIsDefault">Default variant</label>
+    </div>
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeVariantDialog()" />
+      <p-button label="Save" type="submit" />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog [visible]="priceDialogVisible()" (visibleChange)="priceDialogVisible.set($event)" header="Manage Prices" [modal]="true" [style]="{ width: '24rem' }">
+  <form [formGroup]="priceForm" (ngSubmit)="submitPrices()" class="dialog-form">
+    <div class="field">
+      <label for="purchaseAmount">Purchase Price</label>
+      <p-inputNumber inputId="purchaseAmount" formControlName="purchaseAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4" />
+    </div>
+    <div class="field">
+      <label for="retailAmount">Retail (List) Price</label>
+      <p-inputNumber inputId="retailAmount" formControlName="retailAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4" />
+    </div>
+    <div class="field">
+      <label for="saleAmount">Sale Price</label>
+      <p-inputNumber inputId="saleAmount" formControlName="saleAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4" />
+    </div>
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closePriceDialog()" />
+      <p-button label="Save" type="submit" />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog [visible]="conversionDialogVisible()" (visibleChange)="conversionDialogVisible.set($event)" [header]="editingConversion() ? 'Edit Conversion' : 'Add Conversion'" [modal]="true" [style]="{ width: '24rem' }">
+  <form [formGroup]="conversionForm" (ngSubmit)="submitConversion()" class="dialog-form">
+    <div class="field">
+      <label for="conversionUomId">Unit of Measure</label>
+      <p-select inputId="conversionUomId" formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" />
+    </div>
+    <div class="field">
+      <label for="conversionFactor">Conversion Factor (base units per 1)</label>
+      <p-inputNumber inputId="conversionFactor" formControlName="conversionFactor" [minFractionDigits]="0" [maxFractionDigits]="6" />
+    </div>
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeConversionDialog()" />
+      <p-button label="Save" type="submit" />
+    </div>
+  </form>
+</p-dialog>

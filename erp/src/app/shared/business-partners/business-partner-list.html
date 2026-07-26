@@ -1,0 +1,115 @@
+<p-card>
+  <div class="toolbar">
+    <h2>{{ config().title }}</h2>
+    <p-button *appHasRight="config().createRight" label="Add" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="partners()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Payment Terms</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-partner>
+      <tr>
+        <td>{{ partner.code }}</td>
+        <td>{{ partner.name }}</td>
+        <td>{{ partner.contactPerson ?? '—' }}</td>
+        <td>{{ partner.phone ?? '—' }}</td>
+        <td>{{ partner.email ?? '—' }}</td>
+        <td>{{ partner.defaultPaymentTermDays }} days</td>
+        <td>
+          <p-tag [value]="partner.isActive ? 'Active' : 'Inactive'" [severity]="partner.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="config().editRight" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(partner)" />
+          <p-button
+            *appHasRight="config().editRight"
+            [icon]="partner.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="partner.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(partner)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">None yet. Add one to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingPartner() ? 'Edit' : 'Add'"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="partnerType">Type</label>
+        <p-select inputId="partnerType" formControlName="partnerType" [options]="partnerTypeOptions()" optionLabel="label" optionValue="value" />
+      </div>
+      <div class="field">
+        <label for="code">Code</label>
+        <input id="code" type="text" pInputText formControlName="code" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="contactPerson">Contact Person</label>
+        <input id="contactPerson" type="text" pInputText formControlName="contactPerson" />
+      </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input id="phone" type="text" pInputText formControlName="phone" />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="text" pInputText formControlName="email" />
+      </div>
+      <div class="field">
+        <label for="address">Address</label>
+        <input id="address" type="text" pInputText formControlName="address" />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="defaultPaymentTermDays">Default Payment Term (days)</label>
+        <p-inputNumber inputId="defaultPaymentTermDays" formControlName="defaultPaymentTermDays" [min]="0" />
+      </div>
+      <div class="field">
+        <label for="creditLimit">Credit Limit</label>
+        <p-inputNumber inputId="creditLimit" formControlName="creditLimit" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" />
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

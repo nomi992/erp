@@ -1,0 +1,86 @@
+<p-card>
+  <div class="toolbar">
+    <h2>Warehouses</h2>
+    <p-button *appHasRight="RightCode.WarehousesCreate" label="Add Warehouse" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
+
+  <p-table [value]="warehouses()" [loading]="loading()" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Cost Center</th>
+        <th>Default</th>
+        <th>Status</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-warehouse>
+      <tr>
+        <td>{{ warehouse.code }}</td>
+        <td>{{ warehouse.name }}</td>
+        <td>{{ warehouse.costCenterName ?? '—' }}</td>
+        <td>
+          @if (warehouse.isDefault) {
+            <p-tag value="Default" severity="info" />
+          }
+        </td>
+        <td>
+          <p-tag [value]="warehouse.isActive ? 'Active' : 'Inactive'" [severity]="warehouse.isActive ? 'success' : 'danger'" />
+        </td>
+        <td class="actions">
+          <p-button *appHasRight="RightCode.WarehousesEdit" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="openEditDialog(warehouse)" />
+          <p-button
+            *appHasRight="RightCode.WarehousesEdit"
+            [icon]="warehouse.isActive ? 'pi pi-eye-slash' : 'pi pi-eye'"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            [pTooltip]="warehouse.isActive ? 'Deactivate' : 'Activate'"
+            (onClick)="toggleActive(warehouse)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">No warehouses yet. Add one to get started.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="editingWarehouse() ? 'Edit Warehouse' : 'Add Warehouse'"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+    <div class="field">
+      <label for="code">Code</label>
+      <input id="code" type="text" pInputText formControlName="code" />
+    </div>
+
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label for="costCenterId">Cost Center</label>
+      <p-select inputId="costCenterId" formControlName="costCenterId" [options]="costCenterOptions()" optionLabel="label" optionValue="value" />
+    </div>
+
+    <div class="field checkbox-field">
+      <p-checkbox formControlName="isDefault" [binary]="true" inputId="isDefault" />
+      <label for="isDefault">Default warehouse for this branch</label>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="closeDialog()" />
+      <p-button label="Save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>
