@@ -9,6 +9,7 @@ import { PrimeTemplate } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
 import { StockAdjustmentService } from '../../../core/stock-adjustments/stock-adjustment.service';
 import { StockAdjustmentListItem, StockAdjustmentStatus } from '../../../core/stock-adjustments/stock-adjustment.models';
 import { HasRightDirective } from '../../../core/auth/has-right.directive';
@@ -18,7 +19,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 
 @Component({
   selector: 'app-stock-adjustment-list',
-  imports: [DatePipe, ButtonModule, CardModule, HasRightDirective, PrimeTemplate, TableModule, TagModule, TooltipModule],
+  imports: [DatePipe, ButtonModule, CardModule, HasRightDirective, PrimeTemplate, TableModule, TagModule, TooltipModule, InputTextModule],
   templateUrl: './stock-adjustment-list.html',
   styleUrl: './stock-adjustment-list.scss',
 })
@@ -33,24 +34,39 @@ export class StockAdjustmentList {
   readonly adjustments = signal<StockAdjustmentListItem[]>([]);
   readonly totalRecords = signal(0);
   readonly rows = signal(25);
+  readonly searchTerm = signal('');
+
+  private lastEvent?: TableLazyLoadEvent;
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.load(this.lastEvent);
+  }
 
   load(event?: TableLazyLoadEvent): void {
+    this.lastEvent = event;
     const first = event?.first ?? 0;
     const rows = event?.rows ?? this.rows();
     const pageNumber = Math.floor(first / rows) + 1;
 
+    const sortField = Array.isArray(event?.sortField) ? event?.sortField[0] : event?.sortField;
+    const sortBy = sortField ?? undefined;
+    const sortDirection = event?.sortOrder === 1 ? 'asc' : event?.sortOrder === -1 ? 'desc' : undefined;
+
     this.loading.set(true);
-    this.adjustmentService.getAll({ pageNumber, pageSize: rows }).subscribe({
-      next: (response) => {
-        this.loading.set(false);
-        this.adjustments.set(response.data?.items ?? []);
-        this.totalRecords.set(response.data?.totalCount ?? 0);
-      },
-      error: (error: HttpErrorResponse) => {
-        this.loading.set(false);
-        this.notificationService.error(this.extractErrorMessage(error, 'Unable to load stock adjustments.'));
-      },
-    });
+    this.adjustmentService
+      .getAll({ pageNumber, pageSize: rows, search: this.searchTerm() || undefined, sortBy, sortDirection })
+      .subscribe({
+        next: (response) => {
+          this.loading.set(false);
+          this.adjustments.set(response.data?.items ?? []);
+          this.totalRecords.set(response.data?.totalCount ?? 0);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.notificationService.error(this.extractErrorMessage(error, 'Unable to load stock adjustments.'));
+        },
+      });
   }
 
   statusSeverity(status: StockAdjustmentStatus): 'secondary' | 'warn' | 'success' | 'danger' {

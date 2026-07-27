@@ -29,11 +29,12 @@ public class InvoicesController : ControllerBase
     public async Task<ActionResult<ApiResponse<PagedResult<InvoiceListItemResponse>>>> GetAll(
         [FromQuery] InvoiceType? invoiceType, [FromQuery] int? partnerId, [FromQuery] InvoiceStatus? status,
         [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+        [FromQuery] string? search, [FromQuery] string? sortBy, [FromQuery] string? sortDirection,
         [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 25)
     {
         try
         {
-            var invoices = await _invoices.GetAllAsync(invoiceType, partnerId, status, from, to, pageNumber, pageSize);
+            var invoices = await _invoices.GetAllAsync(invoiceType, partnerId, status, from, to, search, sortBy, sortDirection, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<InvoiceListItemResponse>>.Ok(invoices, ResponseMessage.Success.ToText()));
         }
         catch (AppException ex)

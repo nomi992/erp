@@ -3,17 +3,27 @@
 <p-card>
   <div class="toolbar">
     <h2>Recurring Voucher Templates</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.RecurringVoucherTemplatesCreate" label="Add Template" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="templates()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="templates()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['name', 'voucherType', 'frequency']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Voucher Type</th>
-        <th>Frequency</th>
-        <th>Next Run Date</th>
-        <th>Active</th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="voucherType">Voucher Type <p-sortIcon field="voucherType" /></th>
+        <th pSortableColumn="frequency">Frequency <p-sortIcon field="frequency" /></th>
+        <th pSortableColumn="nextRunDate">Next Run Date <p-sortIcon field="nextRunDate" /></th>
+        <th pSortableColumn="isActive">Active <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

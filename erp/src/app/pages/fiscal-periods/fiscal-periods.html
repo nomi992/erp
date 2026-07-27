@@ -1,16 +1,26 @@
 <p-card>
   <div class="toolbar">
     <h2>Fiscal Periods</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.FiscalPeriodsCreate" label="Add Fiscal Period" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="fiscalPeriods()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="fiscalPeriods()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['name']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        <th>Status</th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="startDate">Start Date <p-sortIcon field="startDate" /></th>
+        <th pSortableColumn="endDate">End Date <p-sortIcon field="endDate" /></th>
+        <th pSortableColumn="isClosed">Status <p-sortIcon field="isClosed" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

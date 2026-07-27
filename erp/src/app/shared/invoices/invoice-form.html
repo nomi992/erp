@@ -12,11 +12,11 @@
     <div class="field-row">
       <div class="field">
         <label for="partnerId">{{ config().isPurchaseSide ? 'Supplier' : 'Customer' }}</label>
-        <p-select inputId="partnerId" formControlName="partnerId" [options]="partnerOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+        <p-select inputId="partnerId" formControlName="partnerId" [options]="partnerOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
       </div>
       <div class="field">
         <label for="warehouseId">Warehouse</label>
-        <p-select inputId="warehouseId" formControlName="warehouseId" [options]="warehouseOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+        <p-select inputId="warehouseId" formControlName="warehouseId" [options]="warehouseOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
       </div>
       <div class="field">
         <label for="date">Date</label>
@@ -35,7 +35,7 @@
       <div class="field-row">
         <div class="field">
           <label for="paymentMode">Payment Mode</label>
-          <p-select inputId="paymentMode" formControlName="paymentMode" [options]="paymentModeOptions" optionLabel="label" optionValue="value" />
+          <p-select inputId="paymentMode" formControlName="paymentMode" [options]="paymentModeOptions" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
         </div>
         <div class="field">
           <label for="paymentTermDays">Payment Term (days)</label>
@@ -60,6 +60,7 @@
             optionValue="value"
             [filter]="true"
             [showClear]="true"
+            appendTo="body"
             (onChange)="onReferenceChange()"
           />
         </div>
@@ -102,15 +103,15 @@
         <ng-template pTemplate="body" let-lineGroup let-i="rowIndex">
           <tr [formGroup]="lineGroup">
             <td>
-              <p-select formControlName="productVariantId" [options]="variantOptions()" optionLabel="label" optionValue="value" [filter]="true" (onChange)="onVariantChange(i)" />
+              <p-select formControlName="productVariantId" [options]="variantOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" (onChange)="onVariantChange(i)" />
             </td>
             <td>
-              <p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" />
+              <p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
             </td>
             <td><p-inputNumber formControlName="qty" [minFractionDigits]="0" [maxFractionDigits]="4" /></td>
             <td><p-inputNumber formControlName="unitAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
             <td>
-              <p-select formControlName="taxRateId" [options]="taxRateOptions()" optionLabel="label" optionValue="value" />
+              <p-select formControlName="taxRateId" [options]="taxRateOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
             </td>
             @if (config().isOrder && current()) {
               <td>

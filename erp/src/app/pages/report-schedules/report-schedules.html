@@ -3,6 +3,7 @@
 <p-card>
   <div class="toolbar">
     <h2>Report Schedules</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.ReportSchedulesCreate" label="Add Schedule" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
@@ -11,14 +12,23 @@
     downloads it as a PDF directly, it does not send anything by email.
   </p>
 
-  <p-table [value]="schedules()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="schedules()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['reportType', 'recipients', 'frequency']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Report Type</th>
-        <th>Recipients</th>
-        <th>Frequency</th>
-        <th>Active</th>
-        <th>Last Run</th>
+        <th pSortableColumn="reportType">Report Type <p-sortIcon field="reportType" /></th>
+        <th pSortableColumn="recipients">Recipients <p-sortIcon field="recipients" /></th>
+        <th pSortableColumn="frequency">Frequency <p-sortIcon field="frequency" /></th>
+        <th pSortableColumn="isActive">Active <p-sortIcon field="isActive" /></th>
+        <th pSortableColumn="lastRunAtUtc">Last Run <p-sortIcon field="lastRunAtUtc" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

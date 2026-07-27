@@ -1,19 +1,29 @@
 <p-card>
   <div class="toolbar">
     <h2>{{ config().title }}</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="config().createRight" label="Add" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="partners()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="partners()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['code', 'name', 'contactPerson', 'phone', 'email']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Code</th>
-        <th>Name</th>
-        <th>Contact</th>
-        <th>Phone</th>
-        <th>Email</th>
-        <th>Payment Terms</th>
-        <th>Status</th>
+        <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="contactPerson">Contact <p-sortIcon field="contactPerson" /></th>
+        <th pSortableColumn="phone">Phone <p-sortIcon field="phone" /></th>
+        <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
+        <th pSortableColumn="defaultPaymentTermDays">Payment Terms <p-sortIcon field="defaultPaymentTermDays" /></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

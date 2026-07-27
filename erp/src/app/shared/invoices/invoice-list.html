@@ -7,6 +7,7 @@
   </div>
 
   <form [formGroup]="filterForm" class="filters">
+    <input type="text" pInputText placeholder="Search by number or partner..." [value]="searchTerm()" (input)="onSearchChange($event)" />
     <p-select formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" placeholder="Status" (onChange)="load()" />
     <p-datepicker formControlName="from" placeholder="From" dateFormat="yy-mm-dd" [showIcon]="true" (onSelect)="load()" />
     <p-datepicker formControlName="to" placeholder="To" dateFormat="yy-mm-dd" [showIcon]="true" (onSelect)="load()" />
@@ -22,22 +23,23 @@
     [rows]="rows()"
     [totalRecords]="totalRecords()"
     [rowsPerPageOptions]="[25, 50, 100]"
+    [sortMode]="'single'"
     dataKey="id"
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Number</th>
-        <th>Partner</th>
-        <th>Date</th>
-        <th>Due Date</th>
+        <th pSortableColumn="invoiceNo">Number <p-sortIcon field="invoiceNo" /></th>
+        <th pSortableColumn="partnerName">Partner <p-sortIcon field="partnerName" /></th>
+        <th pSortableColumn="date">Date <p-sortIcon field="date" /></th>
+        <th pSortableColumn="dueDate">Due Date <p-sortIcon field="dueDate" /></th>
         <th>Total</th>
         @if (!config().isOrder) {
-          <th>Outstanding</th>
+          <th pSortableColumn="outstandingAmount">Outstanding <p-sortIcon field="outstandingAmount" /></th>
           <th>Payment</th>
         } @else {
           <th>Fulfillment</th>
         }
-        <th>Status</th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

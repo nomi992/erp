@@ -1,19 +1,29 @@
 <p-card>
   <div class="toolbar">
     <h2>Stock Account Mappings</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.StockAccountMappingsManage" label="Add Mapping" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="mappings()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="mappings()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['productCategoryName']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Product Category</th>
-        <th>Inventory Asset</th>
-        <th>COGS</th>
-        <th>AP</th>
-        <th>AR</th>
-        <th>Sales Revenue</th>
-        <th>Status</th>
+        <th pSortableColumn="productCategoryName">Product Category <p-sortIcon field="productCategoryName" /></th>
+        <th pSortableColumn="inventoryAssetAccountId">Inventory Asset <p-sortIcon field="inventoryAssetAccountId" /></th>
+        <th pSortableColumn="cogsAccountId">COGS <p-sortIcon field="cogsAccountId" /></th>
+        <th pSortableColumn="accountsPayableAccountId">AP <p-sortIcon field="accountsPayableAccountId" /></th>
+        <th pSortableColumn="accountsReceivableAccountId">AR <p-sortIcon field="accountsReceivableAccountId" /></th>
+        <th pSortableColumn="salesRevenueAccountId">Sales Revenue <p-sortIcon field="salesRevenueAccountId" /></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

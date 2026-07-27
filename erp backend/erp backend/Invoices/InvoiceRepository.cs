@@ -45,6 +45,7 @@ public class InvoiceRepository : IInvoiceRepository
 
     public async Task<PagedResult<InvoiceListItemResponse>> GetAllAsync(
         InvoiceType? invoiceType, int? partnerId, InvoiceStatus? status, DateTime? from, DateTime? to,
+        string? search, string? sortBy, string? sortDirection,
         int pageNumber, int pageSize)
     {
         var query = _context.InvoiceHeaders.Include(h => h.Partner).AsQueryable();
@@ -55,7 +56,28 @@ public class InvoiceRepository : IInvoiceRepository
         if (from is not null) query = query.Where(h => h.Date >= from);
         if (to is not null) query = query.Where(h => h.Date <= to);
 
-        query = query.OrderByDescending(h => h.Date).ThenByDescending(h => h.Id);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(h => h.InvoiceNo.Contains(search) || (h.Partner != null && h.Partner.Name.Contains(search)));
+        }
+
+        var direction = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) ? "asc" : "desc";
+        query = (sortBy?.ToLowerInvariant(), direction) switch
+        {
+            ("invoiceno", "asc") => query.OrderBy(h => h.InvoiceNo),
+            ("invoiceno", _) => query.OrderByDescending(h => h.InvoiceNo),
+            ("partnername", "asc") => query.OrderBy(h => h.Partner!.Name),
+            ("partnername", _) => query.OrderByDescending(h => h.Partner!.Name),
+            ("date", "asc") => query.OrderBy(h => h.Date),
+            ("date", _) => query.OrderByDescending(h => h.Date),
+            ("duedate", "asc") => query.OrderBy(h => h.DueDate),
+            ("duedate", _) => query.OrderByDescending(h => h.DueDate),
+            ("outstandingamount", "asc") => query.OrderBy(h => h.OutstandingAmount),
+            ("outstandingamount", _) => query.OrderByDescending(h => h.OutstandingAmount),
+            ("status", "asc") => query.OrderBy(h => h.Status),
+            ("status", _) => query.OrderByDescending(h => h.Status),
+            _ => query.OrderByDescending(h => h.Date).ThenByDescending(h => h.Id),
+        };
 
         var totalCount = await query.CountAsync();
         var items = await query

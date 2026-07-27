@@ -27,11 +27,12 @@ public class StockAdjustmentsController : ControllerBase
     public async Task<ActionResult<ApiResponse<PagedResult<StockAdjustmentListItemResponse>>>> GetAll(
         [FromQuery] AdjustmentReasonCode? reasonCode, [FromQuery] StockAdjustmentStatus? status,
         [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+        [FromQuery] string? search, [FromQuery] string? sortBy, [FromQuery] string? sortDirection,
         [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 25)
     {
         try
         {
-            var adjustments = await _adjustments.GetAllAsync(reasonCode, status, from, to, pageNumber, pageSize);
+            var adjustments = await _adjustments.GetAllAsync(reasonCode, status, from, to, search, sortBy, sortDirection, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<StockAdjustmentListItemResponse>>.Ok(adjustments, ResponseMessage.Success.ToText()));
         }
         catch (AppException ex)

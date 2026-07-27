@@ -1,15 +1,25 @@
 <p-card>
   <div class="toolbar">
     <h2>Product Categories</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.ProductCategoriesCreate" label="Add Category" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="categories()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="categories()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['name', 'parentProductCategoryName']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Parent</th>
-        <th>Status</th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="parentProductCategoryName">Parent <p-sortIcon field="parentProductCategoryName" /></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

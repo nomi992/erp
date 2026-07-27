@@ -1,2 +1,59 @@
 /* You can add global styles to this file, and also import other style files */
 @import "primeicons/primeicons.css";
+
+// Shared responsive helpers for page components. Breakpoint matches the
+// shell/sidebar drawer breakpoint (layout/shell, layout/sidebar) so the whole
+// app switches to its mobile layout at the same width.
+$breakpoint-mobile: 767px;
+
+// Wrap a p-table or a custom CSS-grid table in this instead of letting it
+// overflow the page — content scrolls horizontally within its own box.
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// Page header row: title + primary action. Stacks on mobile.
+.responsive-toolbar {
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 0.75rem;
+
+    > * {
+      width: 100%;
+    }
+  }
+}
+
+// Filter/search form rows: fields go full-width and stack on mobile instead
+// of cramming into wrapped flex rows.
+.responsive-filter-bar {
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    align-items: stretch !important;
+
+    .field,
+    .filter-actions,
+    .field-actions {
+      width: 100%;
+      margin-left: 0 !important;
+    }
+
+    .field p-select,
+    .field p-datepicker,
+    .field p-inputnumber,
+    .field input {
+      width: 100%;
+    }
+
+    .filter-actions,
+    .field-actions {
+      flex-wrap: wrap;
+
+      p-button {
+        flex: 1 1 auto;
+      }
+    }
+  }
+}

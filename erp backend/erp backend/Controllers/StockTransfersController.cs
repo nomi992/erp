@@ -26,11 +26,12 @@ public class StockTransfersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PagedResult<StockTransferListItemResponse>>>> GetAll(
         [FromQuery] StockTransferStatus? status, [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+        [FromQuery] string? search, [FromQuery] string? sortBy, [FromQuery] string? sortDirection,
         [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 25)
     {
         try
         {
-            var transfers = await _transfers.GetAllAsync(status, from, to, pageNumber, pageSize);
+            var transfers = await _transfers.GetAllAsync(status, from, to, search, sortBy, sortDirection, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<StockTransferListItemResponse>>.Ok(transfers, ResponseMessage.Success.ToText()));
         }
         catch (AppException ex)

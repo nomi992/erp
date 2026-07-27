@@ -20,10 +20,8 @@ public class StockMovementService : IStockMovementService
         MovementType movementType, SourceDocumentType sourceType, int sourceDocumentId, int? sourceDocumentLineId,
         string? narration, string username)
     {
-        if (await _context.ProductVariants.FindAsync(productVariantId) is null)
-        {
-            throw new BadRequestException(ResponseMessage.StockMovementVariantNotFound);
-        }
+        var variant = await _context.ProductVariants.Include(v => v.Product).FirstOrDefaultAsync(v => v.Id == productVariantId)
+            ?? throw new BadRequestException(ResponseMessage.StockMovementVariantNotFound);
 
         if (await _context.Warehouses.FindAsync(warehouseId) is null)
         {
@@ -31,6 +29,7 @@ public class StockMovementService : IStockMovementService
         }
 
         var balance = await GetOrCreateBalanceAsync(productVariantId, warehouseId);
+        balance.ReorderLevel = variant.Product!.ReorderLevel;
 
         var newQuantity = balance.QuantityOnHand + baseQty;
         var newAverageCost = newQuantity == 0
@@ -78,10 +77,8 @@ public class StockMovementService : IStockMovementService
         MovementType movementType, SourceDocumentType sourceType, int sourceDocumentId, int? sourceDocumentLineId,
         string? narration, string username, bool allowNegativeStock = false)
     {
-        if (await _context.ProductVariants.FindAsync(productVariantId) is null)
-        {
-            throw new BadRequestException(ResponseMessage.StockMovementVariantNotFound);
-        }
+        var variant = await _context.ProductVariants.Include(v => v.Product).FirstOrDefaultAsync(v => v.Id == productVariantId)
+            ?? throw new BadRequestException(ResponseMessage.StockMovementVariantNotFound);
 
         if (await _context.Warehouses.FindAsync(warehouseId) is null)
         {
@@ -89,6 +86,7 @@ public class StockMovementService : IStockMovementService
         }
 
         var balance = await GetOrCreateBalanceAsync(productVariantId, warehouseId);
+        balance.ReorderLevel = variant.Product!.ReorderLevel;
 
         if (balance.QuantityOnHand < baseQty && !allowNegativeStock)
         {

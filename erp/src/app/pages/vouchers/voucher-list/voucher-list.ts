@@ -8,6 +8,7 @@ import { CardModule } from 'primeng/card';
 import { ConfirmationService, PrimeTemplate } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
+import { InputTextModule } from 'primeng/inputtext';
 import { ReactiveFormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
@@ -54,6 +55,7 @@ function toIsoDate(date: Date | null): string | undefined {
     ConfirmDialogModule,
     DatePickerModule,
     HasRightDirective,
+    InputTextModule,
     PrimeTemplate,
     SelectModule,
     TableModule,

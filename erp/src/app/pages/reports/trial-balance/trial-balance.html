@@ -1,9 +1,9 @@
 <p-card>
-  <div class="toolbar">
+  <div class="toolbar responsive-toolbar">
     <h2>Trial Balance</h2>
   </div>
 
-  <div class="filter-bar">
+  <div class="filter-bar responsive-filter-bar">
     <div class="field">
       <label for="asOf">As Of</label>
       <p-datepicker inputId="asOf" [ngModel]="asOf()" (ngModelChange)="asOf.set($event)" dateFormat="yy-mm-dd" [showIcon]="true" />
@@ -51,6 +51,7 @@
       </p-message>
     }
 
+    <div class="table-scroll">
     <p-table [value]="r.rows" [loading]="loading()" dataKey="accountId">
       <ng-template pTemplate="header">
         <tr>
@@ -81,5 +82,6 @@
         </tr>
       </ng-template>
     </p-table>
+    </div>
   }
 </p-card>

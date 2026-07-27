@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { PrimeTemplate } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -26,6 +27,7 @@ import { NotificationService } from '../../core/notifications/notification.servi
     CardModule,
     DialogModule,
     HasRightDirective,
+    InputTextModule,
     PrimeTemplate,
     SelectModule,
     TableModule,

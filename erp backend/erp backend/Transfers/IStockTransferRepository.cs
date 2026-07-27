@@ -5,7 +5,7 @@ namespace erp_backend.Transfers;
 
 public interface IStockTransferRepository
 {
-    Task<PagedResult<StockTransferListItemResponse>> GetAllAsync(StockTransferStatus? status, DateTime? from, DateTime? to, int pageNumber, int pageSize);
+    Task<PagedResult<StockTransferListItemResponse>> GetAllAsync(StockTransferStatus? status, DateTime? from, DateTime? to, string? search, string? sortBy, string? sortDirection, int pageNumber, int pageSize);
     Task<StockTransferResponse> GetByIdAsync(int id);
     Task<StockTransferResponse> CreateAsync(StockTransferRequest request, string username);
     Task SubmitAsync(int id);

@@ -6,6 +6,7 @@ import { TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { PrimeTemplate } from 'primeng/api';
+import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -18,7 +19,7 @@ import { PartnerPaymentConfig } from './partner-payment-config';
 
 @Component({
   selector: 'app-partner-payment-list',
-  imports: [DatePipe, DecimalPipe, ButtonModule, CardModule, HasRightDirective, PrimeTemplate, TableModule, TagModule, TooltipModule],
+  imports: [DatePipe, DecimalPipe, ButtonModule, CardModule, HasRightDirective, InputTextModule, PrimeTemplate, TableModule, TagModule, TooltipModule],
   templateUrl: './partner-payment-list.html',
   styleUrl: './partner-payment-list.scss',
 })
@@ -33,24 +34,49 @@ export class PartnerPaymentList {
   readonly payments = signal<PartnerPaymentListItem[]>([]);
   readonly totalRecords = signal(0);
   readonly rows = signal(25);
+  readonly searchTerm = signal('');
+
+  private searchDebounceHandle?: ReturnType<typeof setTimeout>;
+  private lastEvent?: TableLazyLoadEvent;
 
   load(event?: TableLazyLoadEvent): void {
-    const first = event?.first ?? 0;
-    const rows = event?.rows ?? this.rows();
+    this.lastEvent = event ?? this.lastEvent;
+    const first = this.lastEvent?.first ?? 0;
+    const rows = this.lastEvent?.rows ?? this.rows();
     const pageNumber = Math.floor(first / rows) + 1;
+    const sortField = this.lastEvent?.sortField;
+    const sortBy = typeof sortField === 'string' ? sortField : undefined;
+    const sortDirection = this.lastEvent?.sortOrder === 1 ? 'asc' : this.lastEvent?.sortOrder === -1 ? 'desc' : undefined;
 
     this.loading.set(true);
-    this.paymentService.getAll({ direction: this.config().direction, pageNumber, pageSize: rows }).subscribe({
-      next: (response) => {
-        this.loading.set(false);
-        this.payments.set(response.data?.items ?? []);
-        this.totalRecords.set(response.data?.totalCount ?? 0);
-      },
-      error: (error: HttpErrorResponse) => {
-        this.loading.set(false);
-        this.notificationService.error(this.extractErrorMessage(error, `Unable to load ${this.config().title.toLowerCase()}.`));
-      },
-    });
+    this.paymentService
+      .getAll({
+        direction: this.config().direction,
+        search: this.searchTerm() || undefined,
+        sortBy,
+        sortDirection,
+        pageNumber,
+        pageSize: rows,
+      })
+      .subscribe({
+        next: (response) => {
+          this.loading.set(false);
+          this.payments.set(response.data?.items ?? []);
+          this.totalRecords.set(response.data?.totalCount ?? 0);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.notificationService.error(this.extractErrorMessage(error, `Unable to load ${this.config().title.toLowerCase()}.`));
+        },
+      });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    if (this.searchDebounceHandle) {
+      clearTimeout(this.searchDebounceHandle);
+    }
+    this.searchDebounceHandle = setTimeout(() => this.load(), 300);
   }
 
   statusSeverity(status: PartnerPaymentStatus): 'secondary' | 'warn' | 'success' | 'danger' {

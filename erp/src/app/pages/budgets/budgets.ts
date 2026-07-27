@@ -8,6 +8,7 @@ import { ConfirmationService, PrimeTemplate } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
@@ -47,6 +48,7 @@ const MONTH_OPTIONS = [
     DialogModule,
     HasRightDirective,
     InputNumberModule,
+    InputTextModule,
     PrimeTemplate,
     SelectModule,
     TableModule,

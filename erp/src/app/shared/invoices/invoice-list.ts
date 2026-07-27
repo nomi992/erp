@@ -9,6 +9,7 @@ import { CardModule } from 'primeng/card';
 import { ConfirmationService, PrimeTemplate } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
+import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -41,6 +42,7 @@ function toIsoDate(date: Date | null): string | undefined {
     ConfirmDialogModule,
     DatePickerModule,
     HasRightDirective,
+    InputTextModule,
     PrimeTemplate,
     SelectModule,
     TableModule,
@@ -64,6 +66,11 @@ export class InvoiceList {
   readonly invoices = signal<InvoiceListItem[]>([]);
   readonly totalRecords = signal(0);
   readonly rows = signal(25);
+  readonly searchTerm = signal('');
+
+  private searchDebounceHandle?: ReturnType<typeof setTimeout>;
+  private sortField?: string;
+  private sortOrder?: number | null;
 
   readonly statusOptions = [
     { label: 'All Statuses', value: null },
@@ -82,6 +89,11 @@ export class InvoiceList {
     const rows = event?.rows ?? this.rows();
     const pageNumber = Math.floor(first / rows) + 1;
 
+    if (event) {
+      this.sortField = typeof event.sortField === 'string' ? event.sortField : undefined;
+      this.sortOrder = event.sortOrder;
+    }
+
     this.loading.set(true);
     this.invoiceService
       .getAll({
@@ -89,6 +101,9 @@ export class InvoiceList {
         status: raw.status ?? undefined,
         from: toIsoDate(raw.from),
         to: toIsoDate(raw.to),
+        search: this.searchTerm() || undefined,
+        sortBy: this.sortField,
+        sortDirection: this.sortOrder === 1 ? 'asc' : this.sortOrder === -1 ? 'desc' : undefined,
         pageNumber,
         pageSize: rows,
       })
@@ -105,8 +120,17 @@ export class InvoiceList {
       });
   }
 
+  onSearchChange(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+    if (this.searchDebounceHandle) {
+      clearTimeout(this.searchDebounceHandle);
+    }
+    this.searchDebounceHandle = setTimeout(() => this.load(), 300);
+  }
+
   clearFilters(): void {
     this.filterForm.reset({ status: null, from: null, to: null });
+    this.searchTerm.set('');
     this.load();
   }
 

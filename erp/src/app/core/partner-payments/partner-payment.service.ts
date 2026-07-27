@@ -12,6 +12,9 @@ export interface PartnerPaymentFilter {
   status?: PartnerPaymentStatus;
   from?: string;
   to?: string;
+  search?: string;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
   pageNumber?: number;
   pageSize?: number;
 }
@@ -28,6 +31,9 @@ export class PartnerPaymentService {
     if (filter.status) params['status'] = filter.status;
     if (filter.from) params['from'] = filter.from;
     if (filter.to) params['to'] = filter.to;
+    if (filter.search) params['search'] = filter.search;
+    if (filter.sortBy) params['sortBy'] = filter.sortBy;
+    if (filter.sortDirection) params['sortDirection'] = filter.sortDirection;
     params['pageNumber'] = String(filter.pageNumber ?? 1);
     params['pageSize'] = String(filter.pageSize ?? 25);
 

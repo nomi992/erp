@@ -1,18 +1,28 @@
 <p-card>
   <div class="toolbar">
     <h2>Products</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.ProductsCreate" label="Add Product" icon="pi pi-plus" (onClick)="createProduct()" />
   </div>
 
-  <p-table [value]="products()" [loading]="loading()" dataKey="id" [paginator]="true" [rows]="20">
+  <p-table
+    #dt
+    [value]="products()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['sku', 'name', 'productCategoryName', 'baseUnitOfMeasureCode']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>SKU</th>
-        <th>Name</th>
-        <th>Category</th>
-        <th>Base UOM</th>
+        <th pSortableColumn="sku">SKU <p-sortIcon field="sku" /></th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="productCategoryName">Category <p-sortIcon field="productCategoryName" /></th>
+        <th pSortableColumn="baseUnitOfMeasureCode">Base UOM <p-sortIcon field="baseUnitOfMeasureCode" /></th>
         <th>Variants</th>
-        <th>Status</th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

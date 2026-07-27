@@ -3,6 +3,7 @@
 <p-card>
   <div class="toolbar">
     <h2>Budgets</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.BudgetsCreate" label="Add Budget" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
@@ -29,13 +30,22 @@
     <p-button label="Filter" icon="pi pi-filter" severity="secondary" [outlined]="true" (onClick)="load()" [loading]="loading()" />
   </div>
 
-  <p-table [value]="budgets()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="budgets()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['accountCode', 'accountName']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Account</th>
-        <th>Year</th>
-        <th>Month</th>
-        <th class="numeric">Budgeted Amount</th>
+        <th pSortableColumn="accountName">Account <p-sortIcon field="accountName" /></th>
+        <th pSortableColumn="year">Year <p-sortIcon field="year" /></th>
+        <th pSortableColumn="month">Month <p-sortIcon field="month" /></th>
+        <th pSortableColumn="budgetedAmount" class="numeric">Budgeted Amount <p-sortIcon field="budgetedAmount" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

@@ -1,0 +1,130 @@
+:host {
+  display: block;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.kpi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--p-content-border-radius);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.kpi-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.kpi-label {
+  color: var(--p-text-muted-color);
+  font-size: 0.8125rem;
+}
+
+.kpi-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.kpi-success .kpi-icon {
+  background: color-mix(in srgb, var(--p-green-500) 16%, transparent);
+  color: var(--p-green-500);
+}
+
+.kpi-danger .kpi-icon {
+  background: color-mix(in srgb, var(--p-red-500) 16%, transparent);
+  color: var(--p-red-500);
+}
+
+.kpi-info .kpi-icon {
+  background: color-mix(in srgb, var(--p-blue-500) 16%, transparent);
+  color: var(--p-blue-500);
+}
+
+.kpi-warn .kpi-icon {
+  background: color-mix(in srgb, var(--p-orange-500) 16%, transparent);
+  color: var(--p-orange-500);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  .chart-card-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.low-stock-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.low-stock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--p-content-border-color);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.low-stock-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.low-stock-name {
+  font-weight: 600;
+}
+
+.low-stock-warehouse {
+  color: var(--p-text-muted-color);
+  font-size: 0.8125rem;
+}
+
+.low-stock-qty {
+  color: var(--p-red-500);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.empty-message {
+  color: var(--p-text-muted-color);
+  margin: 0;
+}

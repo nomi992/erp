@@ -13,7 +13,8 @@
   }
 }
 
-$coa-columns: 5rem 1fr 6rem 6rem 6rem 6rem 9rem 9rem;
+$coa-columns: 5rem minmax(12rem, 1fr) 6rem 6rem 6rem 6rem 9rem 9rem;
+$coa-min-width: 58rem;
 
 .coa-header-row,
 .coa-row {
@@ -21,6 +22,7 @@ $coa-columns: 5rem 1fr 6rem 6rem 6rem 6rem 9rem 9rem;
   grid-template-columns: $coa-columns;
   align-items: center;
   gap: 0.5rem;
+  min-width: $coa-min-width;
 }
 
 .coa-header-row {

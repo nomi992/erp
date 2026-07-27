@@ -29,11 +29,12 @@ public class PartnerPaymentsController : ControllerBase
     public async Task<ActionResult<ApiResponse<PagedResult<PartnerPaymentListItemResponse>>>> GetAll(
         [FromQuery] PaymentDirection? direction, [FromQuery] int? partnerId, [FromQuery] PartnerPaymentStatus? status,
         [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+        [FromQuery] string? search, [FromQuery] string? sortBy, [FromQuery] string? sortDirection,
         [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 25)
     {
         try
         {
-            var payments = await _payments.GetAllAsync(direction, partnerId, status, from, to, pageNumber, pageSize);
+            var payments = await _payments.GetAllAsync(direction, partnerId, status, from, to, search, sortBy, sortDirection, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<PartnerPaymentListItemResponse>>.Ok(payments, ResponseMessage.Success.ToText()));
         }
         catch (AppException ex)

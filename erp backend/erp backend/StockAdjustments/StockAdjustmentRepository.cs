@@ -35,6 +35,7 @@ public class StockAdjustmentRepository : IStockAdjustmentRepository
 
     public async Task<PagedResult<StockAdjustmentListItemResponse>> GetAllAsync(
         AdjustmentReasonCode? reasonCode, StockAdjustmentStatus? status, DateTime? from, DateTime? to,
+        string? search, string? sortBy, string? sortDirection,
         int pageNumber, int pageSize)
     {
         var query = _context.StockAdjustmentHeaders.Include(a => a.Warehouse).AsQueryable();
@@ -44,7 +45,26 @@ public class StockAdjustmentRepository : IStockAdjustmentRepository
         if (from is not null) query = query.Where(a => a.Date >= from);
         if (to is not null) query = query.Where(a => a.Date <= to);
 
-        query = query.OrderByDescending(a => a.Date).ThenByDescending(a => a.Id);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(a => a.AdjustmentNo.Contains(search) || (a.Warehouse != null && a.Warehouse.Name.Contains(search)));
+        }
+
+        var direction = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) ? "asc" : "desc";
+        query = (sortBy?.ToLowerInvariant(), direction) switch
+        {
+            ("adjustmentno", "asc") => query.OrderBy(a => a.AdjustmentNo),
+            ("adjustmentno", _) => query.OrderByDescending(a => a.AdjustmentNo),
+            ("warehousename", "asc") => query.OrderBy(a => a.Warehouse!.Name),
+            ("warehousename", _) => query.OrderByDescending(a => a.Warehouse!.Name),
+            ("reasoncode", "asc") => query.OrderBy(a => a.ReasonCode),
+            ("reasoncode", _) => query.OrderByDescending(a => a.ReasonCode),
+            ("date", "asc") => query.OrderBy(a => a.Date),
+            ("date", _) => query.OrderByDescending(a => a.Date),
+            ("status", "asc") => query.OrderBy(a => a.Status),
+            ("status", _) => query.OrderByDescending(a => a.Status),
+            _ => query.OrderByDescending(a => a.Date).ThenByDescending(a => a.Id),
+        };
 
         var totalCount = await query.CountAsync();
         var items = await query

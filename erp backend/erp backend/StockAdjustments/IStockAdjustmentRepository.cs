@@ -7,6 +7,7 @@ public interface IStockAdjustmentRepository
 {
     Task<PagedResult<StockAdjustmentListItemResponse>> GetAllAsync(
         AdjustmentReasonCode? reasonCode, StockAdjustmentStatus? status, DateTime? from, DateTime? to,
+        string? search, string? sortBy, string? sortDirection,
         int pageNumber, int pageSize);
 
     Task<StockAdjustmentResponse> GetByIdAsync(int id);

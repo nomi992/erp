@@ -34,9 +34,26 @@
   }
 }
 
+@media (max-width: 767px) {
+  .search-input {
+    width: 100%;
+  }
+}
+
 .filter-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+.table-search {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.search-input {
+  width: 16rem;
+  max-width: 100%;
 }
 
 .numeric {

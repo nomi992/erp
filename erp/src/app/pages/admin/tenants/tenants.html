@@ -3,17 +3,27 @@
 <p-card>
   <div class="toolbar">
     <h2>Tenants</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button label="Add Tenant" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="tenants()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="tenants()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['name', 'code']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Code</th>
-        <th>Branches</th>
-        <th>Users</th>
-        <th>Status</th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="code">Code <p-sortIcon field="code" /></th>
+        <th pSortableColumn="branchCount">Branches <p-sortIcon field="branchCount" /></th>
+        <th pSortableColumn="userCount">Users <p-sortIcon field="userCount" /></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

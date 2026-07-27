@@ -40,6 +40,11 @@
   }
 }
 
+:host ::ng-deep p-select .p-select-label {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
 .lines-section {
   margin-top: 0.5rem;
 }

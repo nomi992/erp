@@ -4,6 +4,16 @@
     <p-button *appHasRight="RightCode.StockTransfersCreate" label="New Transfer" icon="pi pi-plus" (onClick)="create()" />
   </div>
 
+  <div class="filters">
+    <input
+      type="text"
+      pInputText
+      placeholder="Search by transfer no. or warehouse..."
+      [value]="searchTerm()"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </div>
+
   <p-table
     [value]="transfers()"
     [loading]="loading()"
@@ -13,15 +23,16 @@
     [rows]="rows()"
     [totalRecords]="totalRecords()"
     [rowsPerPageOptions]="[25, 50, 100]"
+    [sortMode]="'single'"
     dataKey="id"
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Transfer No.</th>
-        <th>Source Warehouse</th>
-        <th>Destination Warehouse</th>
-        <th>Date</th>
-        <th>Status</th>
+        <th pSortableColumn="transferNo">Transfer No. <p-sortIcon field="transferNo" /></th>
+        <th pSortableColumn="sourceWarehouseName">Source Warehouse <p-sortIcon field="sourceWarehouseName" /></th>
+        <th pSortableColumn="destinationWarehouseName">Destination Warehouse <p-sortIcon field="destinationWarehouseName" /></th>
+        <th pSortableColumn="date">Date <p-sortIcon field="date" /></th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

@@ -1,6 +1,7 @@
 <p-card>
   <div class="toolbar">
     <h2>Users</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.UsersCreate" label="Add User" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
@@ -20,16 +21,25 @@
     </div>
   }
 
-  <p-table [value]="users()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="users()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['username', 'tenantName', 'role']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Username</th>
+        <th pSortableColumn="username">Username <p-sortIcon field="username" /></th>
         @if (isSystemAdmin()) {
-          <th>Tenant</th>
+          <th pSortableColumn="tenantName">Tenant <p-sortIcon field="tenantName" /></th>
         }
-        <th>Role</th>
+        <th pSortableColumn="role">Role <p-sortIcon field="role" /></th>
         <th>Branches</th>
-        <th>Status</th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

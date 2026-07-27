@@ -9,6 +9,7 @@ import { PrimeTemplate } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
 import { StockTransferService } from '../../../core/stock-transfers/stock-transfer.service';
 import { StockTransferListItem, StockTransferStatus } from '../../../core/stock-transfers/stock-transfer.models';
 import { HasRightDirective } from '../../../core/auth/has-right.directive';
@@ -18,7 +19,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 
 @Component({
   selector: 'app-stock-transfer-list',
-  imports: [DatePipe, ButtonModule, CardModule, HasRightDirective, PrimeTemplate, TableModule, TagModule, TooltipModule],
+  imports: [DatePipe, ButtonModule, CardModule, HasRightDirective, PrimeTemplate, TableModule, TagModule, TooltipModule, InputTextModule],
   templateUrl: './stock-transfer-list.html',
   styleUrl: './stock-transfer-list.scss',
 })
@@ -33,24 +34,39 @@ export class StockTransferList {
   readonly transfers = signal<StockTransferListItem[]>([]);
   readonly totalRecords = signal(0);
   readonly rows = signal(25);
+  readonly searchTerm = signal('');
+
+  private lastEvent?: TableLazyLoadEvent;
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.load(this.lastEvent);
+  }
 
   load(event?: TableLazyLoadEvent): void {
+    this.lastEvent = event;
     const first = event?.first ?? 0;
     const rows = event?.rows ?? this.rows();
     const pageNumber = Math.floor(first / rows) + 1;
 
+    const sortField = Array.isArray(event?.sortField) ? event?.sortField[0] : event?.sortField;
+    const sortBy = sortField ?? undefined;
+    const sortDirection = event?.sortOrder === 1 ? 'asc' : event?.sortOrder === -1 ? 'desc' : undefined;
+
     this.loading.set(true);
-    this.transferService.getAll({ pageNumber, pageSize: rows }).subscribe({
-      next: (response) => {
-        this.loading.set(false);
-        this.transfers.set(response.data?.items ?? []);
-        this.totalRecords.set(response.data?.totalCount ?? 0);
-      },
-      error: (error: HttpErrorResponse) => {
-        this.loading.set(false);
-        this.notificationService.error(this.extractErrorMessage(error, 'Unable to load stock transfers.'));
-      },
-    });
+    this.transferService
+      .getAll({ pageNumber, pageSize: rows, search: this.searchTerm() || undefined, sortBy, sortDirection })
+      .subscribe({
+        next: (response) => {
+          this.loading.set(false);
+          this.transfers.set(response.data?.items ?? []);
+          this.totalRecords.set(response.data?.totalCount ?? 0);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.notificationService.error(this.extractErrorMessage(error, 'Unable to load stock transfers.'));
+        },
+      });
   }
 
   statusSeverity(status: StockTransferStatus): 'secondary' | 'warn' | 'success' | 'danger' | 'info' {

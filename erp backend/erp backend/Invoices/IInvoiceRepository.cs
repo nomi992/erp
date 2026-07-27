@@ -12,6 +12,7 @@ public interface IInvoiceRepository
 {
     Task<PagedResult<InvoiceListItemResponse>> GetAllAsync(
         InvoiceType? invoiceType, int? partnerId, InvoiceStatus? status, DateTime? from, DateTime? to,
+        string? search, string? sortBy, string? sortDirection,
         int pageNumber, int pageSize);
 
     Task<InvoiceResponse> GetByIdAsync(int id);

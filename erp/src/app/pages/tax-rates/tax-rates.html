@@ -1,15 +1,25 @@
 <p-card>
   <div class="toolbar">
     <h2>Tax Rates</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button *appHasRight="RightCode.TaxRatesCreate" label="Add Tax Rate" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="taxRates()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="taxRates()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['name']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Percentage</th>
-        <th>Status</th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="percentage">Percentage <p-sortIcon field="percentage" /></th>
+        <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>

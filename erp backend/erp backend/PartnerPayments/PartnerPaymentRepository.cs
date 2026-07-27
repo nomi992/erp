@@ -31,6 +31,7 @@ public class PartnerPaymentRepository : IPartnerPaymentRepository
 
     public async Task<PagedResult<PartnerPaymentListItemResponse>> GetAllAsync(
         PaymentDirection? direction, int? partnerId, PartnerPaymentStatus? status, DateTime? from, DateTime? to,
+        string? search, string? sortBy, string? sortDirection,
         int pageNumber, int pageSize)
     {
         var query = _context.PartnerPaymentHeaders.Include(p => p.Partner).AsQueryable();
@@ -40,8 +41,26 @@ public class PartnerPaymentRepository : IPartnerPaymentRepository
         if (status is not null) query = query.Where(p => p.Status == status);
         if (from is not null) query = query.Where(p => p.Date >= from);
         if (to is not null) query = query.Where(p => p.Date <= to);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(p => p.PaymentNo.Contains(search) || (p.Partner != null && p.Partner.Name.Contains(search)));
+        }
 
-        query = query.OrderByDescending(p => p.Date).ThenByDescending(p => p.Id);
+        var direction2 = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) ? "asc" : "desc";
+        query = (sortBy?.ToLowerInvariant(), direction2) switch
+        {
+            ("paymentno", "asc") => query.OrderBy(p => p.PaymentNo),
+            ("paymentno", _) => query.OrderByDescending(p => p.PaymentNo),
+            ("partnername", "asc") => query.OrderBy(p => p.Partner!.Name),
+            ("partnername", _) => query.OrderByDescending(p => p.Partner!.Name),
+            ("date", "asc") => query.OrderBy(p => p.Date),
+            ("date", _) => query.OrderByDescending(p => p.Date),
+            ("totalamount", "asc") => query.OrderBy(p => p.TotalAmount),
+            ("totalamount", _) => query.OrderByDescending(p => p.TotalAmount),
+            ("status", "asc") => query.OrderBy(p => p.Status),
+            ("status", _) => query.OrderByDescending(p => p.Status),
+            _ => query.OrderByDescending(p => p.Date).ThenByDescending(p => p.Id),
+        };
 
         var totalCount = await query.CountAsync();
         var items = await query

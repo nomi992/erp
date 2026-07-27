@@ -34,7 +34,7 @@ public class StockTransferRepository : IStockTransferRepository
     }
 
     public async Task<PagedResult<StockTransferListItemResponse>> GetAllAsync(
-        StockTransferStatus? status, DateTime? from, DateTime? to, int pageNumber, int pageSize)
+        StockTransferStatus? status, DateTime? from, DateTime? to, string? search, string? sortBy, string? sortDirection, int pageNumber, int pageSize)
     {
         var query = _context.StockTransferHeaders
             .Include(t => t.SourceWarehouse)
@@ -45,7 +45,28 @@ public class StockTransferRepository : IStockTransferRepository
         if (from is not null) query = query.Where(t => t.Date >= from);
         if (to is not null) query = query.Where(t => t.Date <= to);
 
-        query = query.OrderByDescending(t => t.Date).ThenByDescending(t => t.Id);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(t => t.TransferNo.Contains(search)
+                || (t.SourceWarehouse != null && t.SourceWarehouse.Name.Contains(search))
+                || (t.DestinationWarehouse != null && t.DestinationWarehouse.Name.Contains(search)));
+        }
+
+        var direction = string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) ? "asc" : "desc";
+        query = (sortBy?.ToLowerInvariant(), direction) switch
+        {
+            ("transferno", "asc") => query.OrderBy(t => t.TransferNo),
+            ("transferno", _) => query.OrderByDescending(t => t.TransferNo),
+            ("sourcewarehousename", "asc") => query.OrderBy(t => t.SourceWarehouse!.Name),
+            ("sourcewarehousename", _) => query.OrderByDescending(t => t.SourceWarehouse!.Name),
+            ("destinationwarehousename", "asc") => query.OrderBy(t => t.DestinationWarehouse!.Name),
+            ("destinationwarehousename", _) => query.OrderByDescending(t => t.DestinationWarehouse!.Name),
+            ("date", "asc") => query.OrderBy(t => t.Date),
+            ("date", _) => query.OrderByDescending(t => t.Date),
+            ("status", "asc") => query.OrderBy(t => t.Status),
+            ("status", _) => query.OrderByDescending(t => t.Status),
+            _ => query.OrderByDescending(t => t.Date).ThenByDescending(t => t.Id),
+        };
 
         var totalCount = await query.CountAsync();
         var items = await query

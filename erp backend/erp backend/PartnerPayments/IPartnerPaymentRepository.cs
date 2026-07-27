@@ -12,6 +12,7 @@ public interface IPartnerPaymentRepository
 {
     Task<PagedResult<PartnerPaymentListItemResponse>> GetAllAsync(
         PaymentDirection? direction, int? partnerId, PartnerPaymentStatus? status, DateTime? from, DateTime? to,
+        string? search, string? sortBy, string? sortDirection,
         int pageNumber, int pageSize);
 
     Task<PartnerPaymentResponse> GetByIdAsync(int id);

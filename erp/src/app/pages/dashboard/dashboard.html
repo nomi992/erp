@@ -1,3 +1,63 @@
-<p-card header="Welcome to ERP">
-  <p>You're signed in. Select an item from the sidebar to get started.</p>
-</p-card>
+<div class="dashboard">
+  <div class="kpi-grid">
+    @for (kpi of kpis(); track kpi.label) {
+      <p-card styleClass="kpi-card">
+        <div class="kpi" [class]="'kpi-' + kpi.severity">
+          <span class="kpi-icon"><i [class]="kpi.icon"></i></span>
+          <div class="kpi-body">
+            <span class="kpi-label">{{ kpi.label }}</span>
+            <span class="kpi-value">{{ kpi.value | number: '1.0-2' }}</span>
+          </div>
+        </div>
+      </p-card>
+    }
+  </div>
+
+  <div class="chart-grid">
+    <p-card header="Income vs Expenses (This Month)" styleClass="chart-card">
+      <p-chart type="bar" [data]="incomeExpenseChart().data" [options]="incomeExpenseChart().options" [height]="'260px'" />
+    </p-card>
+
+    <p-card header="Balance Sheet Composition" styleClass="chart-card">
+      <p-chart type="doughnut" [data]="balanceSheetChart().data" [options]="balanceSheetChart().options" [height]="'260px'" />
+    </p-card>
+
+    <p-card header="Receivables vs Payables Aging" styleClass="chart-card chart-card-wide">
+      <p-chart type="bar" [data]="agingChart().data" [options]="agingChart().options" [height]="'260px'" />
+    </p-card>
+
+    <p-card header="Top 5 Debtors" styleClass="chart-card">
+      @if (topDebtorsChart().data.labels.length) {
+        <p-chart type="bar" [data]="topDebtorsChart().data" [options]="topDebtorsChart().options" [height]="'260px'" />
+      } @else {
+        <p class="empty-message">No outstanding receivables.</p>
+      }
+    </p-card>
+
+    <p-card header="Top 5 Creditors" styleClass="chart-card">
+      @if (topCreditorsChart().data.labels.length) {
+        <p-chart type="bar" [data]="topCreditorsChart().data" [options]="topCreditorsChart().options" [height]="'260px'" />
+      } @else {
+        <p class="empty-message">No outstanding payables.</p>
+      }
+    </p-card>
+  </div>
+
+  <p-card header="Low Stock Alerts">
+    @if (lowStockItems().length) {
+      <div class="low-stock-list">
+        @for (item of lowStockItems(); track item.productVariantId + '-' + item.warehouseId) {
+          <div class="low-stock-row">
+            <div class="low-stock-info">
+              <span class="low-stock-name">{{ item.productName }} — {{ item.productVariantName }}</span>
+              <span class="low-stock-warehouse">{{ item.warehouseName }}</span>
+            </div>
+            <span class="low-stock-qty">{{ item.quantityOnHand | number: '1.0-2' }} on hand</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="empty-message">No low stock items. Everything is above reorder level.</p>
+    }
+  </p-card>
+</div>

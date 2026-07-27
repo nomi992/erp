@@ -3,19 +3,29 @@
 <p-card>
   <div class="toolbar">
     <h2>Roles</h2>
+    <input type="text" pInputText placeholder="Search" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="search-input" />
     <p-button label="Add Role" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
-  <p-table [value]="roles()" [loading]="loading()" dataKey="id">
+  <p-table
+    #dt
+    [value]="roles()"
+    [loading]="loading()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [globalFilterFields]="['name', 'description', 'tenantName']"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Name</th>
-        <th>Description</th>
+        <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+        <th pSortableColumn="description">Description <p-sortIcon field="description" /></th>
         @if (isSystemAdmin()) {
-          <th>Tenant</th>
+          <th pSortableColumn="tenantName">Tenant <p-sortIcon field="tenantName" /></th>
         }
         <th>Rights</th>
-        <th>Type</th>
+        <th pSortableColumn="isSystemRole">Type <p-sortIcon field="isSystemRole" /></th>
         <th class="actions">Actions</th>
       </tr>
     </ng-template>
