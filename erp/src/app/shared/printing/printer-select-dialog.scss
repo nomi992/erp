@@ -1,0 +1,27 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+}
+
+.muted {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.error-text {
+  color: var(--p-red-500, #e53935);
+  font-weight: 600;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

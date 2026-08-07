@@ -18,4 +18,6 @@ export interface InvoiceTypeConfig {
   isPurchaseSide: boolean;
   referenceInvoiceType: InvoiceType | null;
   referenceLabel: string | null;
+  /** Enables the QZ Tray "Print" action (list row + form toolbar). Sales/Purchase invoices only. */
+  printable?: boolean;
 }

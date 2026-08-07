@@ -5,6 +5,9 @@
     <h2>{{ current() ? current()!.invoiceNo : 'New ' + config().singularLabel }}</h2>
     @if (current()) {
       <p-tag [value]="current()!.status" />
+      @if (config().printable) {
+        <p-button label="Print" icon="pi pi-print" severity="secondary" [text]="true" type="button" (onClick)="printCurrent()" />
+      }
     }
   </div>
 
@@ -181,3 +184,13 @@
     </div>
   </form>
 </p-card>
+
+@if (config().printable) {
+  <app-printer-select-dialog
+    [visible]="printerDialogVisible()"
+    (visibleChange)="printerDialogVisible.set($event)"
+    [docKey]="config().invoiceType"
+    [header]="'Print ' + config().singularLabel"
+    (confirmed)="onPrinterChosen($event)"
+  />
+}

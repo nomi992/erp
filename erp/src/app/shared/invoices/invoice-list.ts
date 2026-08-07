@@ -15,11 +15,16 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { InvoiceService } from '../../core/invoices/invoice.service';
-import { InvoiceListItem, InvoicePaymentStatus, InvoiceStatus } from '../../core/invoices/invoice.models';
+import { Invoice, InvoiceListItem, InvoicePaymentStatus, InvoiceStatus } from '../../core/invoices/invoice.models';
 import { HasRightDirective } from '../../core/auth/has-right.directive';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { NotificationService } from '../../core/notifications/notification.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { TenancyService } from '../../core/tenancy/tenancy.service';
+import { QzTrayService } from '../../core/printing/qz-tray.service';
+import { PrinterSelectDialog } from '../printing/printer-select-dialog';
 import { InvoiceTypeConfig } from './invoice-type-config';
+import { buildInvoicePrintHtml } from './invoice-print-template';
 
 const STATUSES: InvoiceStatus[] = ['Draft', 'PendingApproval', 'Posted', 'Rejected', 'Cancelled'];
 
@@ -44,6 +49,7 @@ function toIsoDate(date: Date | null): string | undefined {
     HasRightDirective,
     InputTextModule,
     PrimeTemplate,
+    PrinterSelectDialog,
     SelectModule,
     TableModule,
     TagModule,
@@ -61,12 +67,18 @@ export class InvoiceList {
   private readonly notificationService = inject(NotificationService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly tenancyService = inject(TenancyService);
+  private readonly qzTrayService = inject(QzTrayService);
 
   readonly loading = signal(false);
   readonly invoices = signal<InvoiceListItem[]>([]);
   readonly totalRecords = signal(0);
   readonly rows = signal(25);
   readonly searchTerm = signal('');
+
+  readonly printerDialogVisible = signal(false);
+  readonly pendingPrintInvoice = signal<Invoice | null>(null);
 
   private searchDebounceHandle?: ReturnType<typeof setTimeout>;
   private sortField?: string;
@@ -218,6 +230,41 @@ export class InvoiceList {
       rejectButtonProps: { severity: 'secondary', outlined: true, label: 'Back' },
       accept: () => this.cancel(item),
     });
+  }
+
+  print(item: InvoiceListItem): void {
+    this.invoiceService.getById(item.id).subscribe({
+      next: (response) => {
+        const invoice = response.data;
+        if (!invoice) {
+          this.notificationService.error('Unable to load invoice for printing.');
+          return;
+        }
+        this.pendingPrintInvoice.set(invoice);
+        this.printerDialogVisible.set(true);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.notificationService.error(this.extractErrorMessage(error, 'Unable to load invoice for printing.'));
+      },
+    });
+  }
+
+  onPrinterChosen(printerName: string): void {
+    const invoice = this.pendingPrintInvoice();
+    if (!invoice) return;
+
+    const html = buildInvoicePrintHtml(invoice, this.config(), {
+      companyName: this.tenancyService.effectiveTenantName(),
+      branchName: this.tenancyService.currentBranch()?.name ?? null,
+      printedBy: this.authService.username(),
+    });
+
+    this.qzTrayService.printHtml(printerName, html).then(
+      () => this.notificationService.success(`${invoice.invoiceNo} sent to ${printerName}.`),
+      (error: unknown) => {
+        this.notificationService.error(error instanceof Error ? error.message : 'Unable to print.');
+      },
+    );
   }
 
   private cancel(item: InvoiceListItem): void {

@@ -1,0 +1,39 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  [header]="header()"
+  [modal]="true"
+  [style]="{ width: '26rem' }"
+>
+  @if (loading()) {
+    <p>Looking for printers…</p>
+  } @else if (error()) {
+    <p class="error-text">{{ error() }}</p>
+    <p class="muted">Make sure QZ Tray is installed and running on this computer, then retry.</p>
+  } @else if (printerOptions().length === 0) {
+    <p>No printers found on this computer.</p>
+  } @else {
+    <div class="field">
+      <label for="printerSelect">Printer</label>
+      <p-select
+        inputId="printerSelect"
+        [options]="printerOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selectedPrinter()"
+        (ngModelChange)="selectedPrinter.set($event)"
+        appendTo="body"
+      />
+    </div>
+  }
+
+  <div class="dialog-actions">
+    @if (error()) {
+      <p-button label="Retry" severity="secondary" icon="pi pi-refresh" [text]="true" type="button" (onClick)="retry()" />
+    }
+    <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="close()" />
+    @if (!loading() && !error() && printerOptions().length > 0) {
+      <p-button label="Print" icon="pi pi-print" type="button" (onClick)="confirm()" />
+    }
+  </div>
+</p-dialog>

@@ -67,6 +67,9 @@
         </td>
         <td class="actions">
           <p-button icon="pi pi-eye" [text]="true" [rounded]="true" size="small" pTooltip="View" (onClick)="view(item)" />
+          @if (config().printable) {
+            <p-button icon="pi pi-print" [text]="true" [rounded]="true" size="small" pTooltip="Print" (onClick)="print(item)" />
+          }
           @if (item.status === 'Draft') {
             <p-button *appHasRight="config().editRight" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" pTooltip="Edit" (onClick)="edit(item)" />
             <p-button *appHasRight="config().submitRight" icon="pi pi-send" [text]="true" [rounded]="true" size="small" pTooltip="Submit" (onClick)="submit(item)" />
@@ -91,3 +94,13 @@
     </ng-template>
   </p-table>
 </p-card>
+
+@if (config().printable) {
+  <app-printer-select-dialog
+    [visible]="printerDialogVisible()"
+    (visibleChange)="printerDialogVisible.set($event)"
+    [docKey]="config().invoiceType"
+    [header]="'Print ' + config().singularLabel"
+    (confirmed)="onPrinterChosen($event)"
+  />
+}

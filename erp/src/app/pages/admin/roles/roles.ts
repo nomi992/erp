@@ -9,6 +9,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -17,6 +18,8 @@ import { RoleService } from '../../../core/roles/role.service';
 import { RoleRequest, RoleResponse } from '../../../core/roles/role.models';
 import { RightsService } from '../../../core/rights/rights.service';
 import { RightGroup } from '../../../core/rights/right.models';
+import { TenantService } from '../../../core/tenants/tenant.service';
+import { Tenant } from '../../../core/tenants/tenant.models';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { NotificationService } from '../../../core/notifications/notification.service';
 
@@ -33,6 +36,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
     FieldsetModule,
     InputTextModule,
     PrimeTemplate,
+    SelectModule,
     TableModule,
     TagModule,
     TooltipModule,
@@ -46,6 +50,7 @@ export class Roles implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly roleService = inject(RoleService);
   private readonly rightsService = inject(RightsService);
+  private readonly tenantService = inject(TenantService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -55,12 +60,16 @@ export class Roles implements OnInit {
   readonly saving = signal(false);
   readonly roles = signal<RoleResponse[]>([]);
   readonly rightGroups = signal<RightGroup[]>([]);
+  readonly tenants = signal<Tenant[]>([]);
+  readonly tenantFilter = signal<number | null>(null);
+  readonly tenantOptions = computed(() => this.tenants().map((t) => ({ label: t.name, value: t.id })));
 
   readonly dialogVisible = signal(false);
   readonly editingRole = signal<RoleResponse | null>(null);
   readonly selectedRightIds = signal<Set<number>>(new Set());
 
   form = this.fb.nonNullable.group({
+    tenantId: this.fb.control<number | null>(null),
     name: ['', [Validators.required]],
     description: [''],
   });
@@ -71,12 +80,19 @@ export class Roles implements OnInit {
       error: () => this.notificationService.error('Unable to load rights.'),
     });
 
+    if (this.isSystemAdmin()) {
+      this.tenantService.getAll().subscribe({
+        next: (response) => this.tenants.set(response.data ?? []),
+        error: () => this.notificationService.error('Unable to load tenants.'),
+      });
+    }
+
     this.load();
   }
 
   load(): void {
     this.loading.set(true);
-    this.roleService.getAll().subscribe({
+    this.roleService.getAll(this.tenantFilter()).subscribe({
       next: (response) => {
         this.loading.set(false);
         this.roles.set(response.data ?? []);
@@ -86,6 +102,10 @@ export class Roles implements OnInit {
         this.notificationService.error(this.extractErrorMessage(error, 'Unable to load roles.'));
       },
     });
+  }
+
+  onTenantFilterChange(): void {
+    this.load();
   }
 
   isRightSelected(rightId: number): boolean {
@@ -104,16 +124,18 @@ export class Roles implements OnInit {
 
   openCreateDialog(): void {
     this.editingRole.set(null);
-    this.form.reset({ name: '', description: '' });
+    this.form.reset({ tenantId: this.tenantFilter(), name: '', description: '' });
     this.form.controls.name.enable();
+    this.form.controls.tenantId.enable();
     this.selectedRightIds.set(new Set());
     this.dialogVisible.set(true);
   }
 
   openEditDialog(role: RoleResponse): void {
     this.editingRole.set(role);
-    this.form.reset({ name: role.name, description: role.description ?? '' });
+    this.form.reset({ tenantId: role.tenantId, name: role.name, description: role.description ?? '' });
     role.isSystemRole ? this.form.controls.name.disable() : this.form.controls.name.enable();
+    this.form.controls.tenantId.disable();
     this.selectedRightIds.set(new Set(role.rights.map((r) => r.id)));
     this.dialogVisible.set(true);
   }
@@ -130,8 +152,9 @@ export class Roles implements OnInit {
 
     this.saving.set(true);
     const editing = this.editingRole();
-    const { name, description } = this.form.getRawValue();
+    const { tenantId, name, description } = this.form.getRawValue();
     const request: RoleRequest = {
+      tenantId,
       name,
       description: description || null,
       rightIds: [...this.selectedRightIds()],

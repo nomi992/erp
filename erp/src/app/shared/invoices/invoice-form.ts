@@ -34,7 +34,12 @@ import { TaxRateService } from '../../core/tax-rates/tax-rate.service';
 import { HasRightDirective } from '../../core/auth/has-right.directive';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { NotificationService } from '../../core/notifications/notification.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { TenancyService } from '../../core/tenancy/tenancy.service';
+import { QzTrayService } from '../../core/printing/qz-tray.service';
+import { PrinterSelectDialog } from '../printing/printer-select-dialog';
 import { InvoiceTypeConfig } from './invoice-type-config';
+import { buildInvoicePrintHtml } from './invoice-print-template';
 
 interface LineFormControls {
   productVariantId: FormControl<number | null>;
@@ -77,6 +82,7 @@ function toIsoDate(date: Date | null): string | undefined {
     InputNumberModule,
     InputTextModule,
     PrimeTemplate,
+    PrinterSelectDialog,
     SelectModule,
     TableModule,
     TagModule,
@@ -101,6 +107,11 @@ export class InvoiceForm implements OnInit {
   private readonly taxRateService = inject(TaxRateService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly authService = inject(AuthService);
+  private readonly tenancyService = inject(TenancyService);
+  private readonly qzTrayService = inject(QzTrayService);
+
+  readonly printerDialogVisible = signal(false);
 
   readonly lookupsLoading = signal(false);
   readonly loading = signal(false);
@@ -367,6 +378,29 @@ export class InvoiceForm implements OnInit {
       rejectButtonProps: { severity: 'secondary', outlined: true, label: 'Back' },
       accept: () => this.cancelDocument(),
     });
+  }
+
+  printCurrent(): void {
+    if (!this.current()) return;
+    this.printerDialogVisible.set(true);
+  }
+
+  onPrinterChosen(printerName: string): void {
+    const invoice = this.current();
+    if (!invoice) return;
+
+    const html = buildInvoicePrintHtml(invoice, this.config(), {
+      companyName: this.tenancyService.effectiveTenantName(),
+      branchName: this.tenancyService.currentBranch()?.name ?? null,
+      printedBy: this.authService.username(),
+    });
+
+    this.qzTrayService.printHtml(printerName, html).then(
+      () => this.notificationService.success(`${invoice.invoiceNo} sent to ${printerName}.`),
+      (error: unknown) => {
+        this.notificationService.error(error instanceof Error ? error.message : 'Unable to print.');
+      },
+    );
   }
 
   private cancelDocument(): void {

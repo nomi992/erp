@@ -7,6 +7,22 @@
     <p-button label="Add Role" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 
+  @if (isSystemAdmin()) {
+    <div class="filter">
+      <label for="tenantFilter">Tenant</label>
+      <p-select
+        inputId="tenantFilter"
+        [ngModel]="tenantFilter()"
+        (ngModelChange)="tenantFilter.set($event); onTenantFilterChange()"
+        [options]="tenantOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="All tenants"
+        [showClear]="true"
+      />
+    </div>
+  }
+
   <p-table
     #dt
     [value]="roles()"
@@ -71,6 +87,21 @@
   [style]="{ width: '36rem' }"
 >
   <form [formGroup]="form" (ngSubmit)="submit()" class="role-form">
+    @if (isSystemAdmin()) {
+      <div class="field">
+        <label for="tenantId">Tenant</label>
+        <p-select
+          inputId="tenantId"
+          formControlName="tenantId"
+          [options]="tenantOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Global (all tenants)"
+          [showClear]="true"
+        />
+      </div>
+    }
+
     <div class="field">
       <label for="name">Name</label>
       <input id="name" type="text" pInputText formControlName="name" />

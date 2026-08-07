@@ -12,21 +12,52 @@
   </ng-template>
   <ng-template #end>
     <div class="user">
-      @if (tenancyService.tenantName(); as tenantName) {
-        <span class="tenant-name">{{ tenantName }}</span>
-      }
+      @if (isSystemAdmin()) {
+        @if (tenancyService.isOverriding()) {
+          <span class="tenant-name">Browsing: {{ tenancyService.overrideTenantName() }}</span>
+        }
 
-      @if (tenancyService.branches().length > 1) {
         <p-select
-          [ngModel]="tenancyService.currentBranchId()"
-          (ngModelChange)="onBranchChange($event)"
-          [options]="tenancyService.branches()"
-          optionLabel="name"
-          optionValue="id"
-          class="branch-select"
+          [ngModel]="tenancyService.overrideTenantId()"
+          (ngModelChange)="onOverrideTenantChange($event)"
+          [options]="tenantOptions()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Browse a tenant..."
+          class="tenant-select"
         />
-      } @else if (tenancyService.currentBranch(); as branch) {
-        <span class="branch-name">{{ branch.name }}</span>
+
+        @if (tenancyService.isOverriding()) {
+          <p-select
+            [ngModel]="tenancyService.overrideBranchId()"
+            (ngModelChange)="onOverrideBranchChange($event)"
+            [options]="overrideBranchOptions()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="All branches"
+            [showClear]="true"
+            class="branch-select"
+          />
+
+          <p-button label="Exit" icon="pi pi-sign-out" size="small" [text]="true" (onClick)="clearOverride()" />
+        }
+      } @else {
+        @if (tenancyService.tenantName(); as tenantName) {
+          <span class="tenant-name">{{ tenantName }}</span>
+        }
+
+        @if (tenancyService.branches().length > 1) {
+          <p-select
+            [ngModel]="tenancyService.currentBranchId()"
+            (ngModelChange)="onBranchChange($event)"
+            [options]="tenancyService.branches()"
+            optionLabel="name"
+            optionValue="id"
+            class="branch-select"
+          />
+        } @else if (tenancyService.currentBranch(); as branch) {
+          <span class="branch-name">{{ branch.name }}</span>
+        }
       }
 
       <p-avatar icon="pi pi-user" shape="circle" />

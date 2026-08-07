@@ -26,5 +26,6 @@ export class PurchaseInvoiceList {
     isPurchaseSide: true,
     referenceInvoiceType: 'PurchaseOrder',
     referenceLabel: 'Purchase Order (optional)',
+    printable: true,
   };
 }

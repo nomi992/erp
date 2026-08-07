@@ -26,5 +26,6 @@ export class SalesInvoiceForm {
     isPurchaseSide: false,
     referenceInvoiceType: 'SalesOrder',
     referenceLabel: 'Sales Order (optional)',
+    printable: true,
   };
 }

@@ -13,6 +13,17 @@
   }
 }
 
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  p-select {
+    min-width: 16rem;
+  }
+}
+
 .actions {
   display: flex;
   align-items: center;

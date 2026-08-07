@@ -4,11 +4,18 @@ import { TenancyService } from './tenancy.service';
 
 export const branchInterceptor: HttpInterceptorFn = (req, next) => {
   const tenancyService = inject(TenancyService);
-  const branchId = tenancyService.currentBranchId();
+  const overrideTenantId = tenancyService.overrideTenantId();
+  const branchId = overrideTenantId != null ? tenancyService.overrideBranchId() : tenancyService.currentBranchId();
 
-  const scopedReq = branchId != null
-    ? req.clone({ setHeaders: { 'X-Branch-Id': String(branchId) } })
-    : req;
+  const headers: Record<string, string> = {};
+  if (overrideTenantId != null) {
+    headers['X-Tenant-Id'] = String(overrideTenantId);
+  }
+  if (branchId != null) {
+    headers['X-Branch-Id'] = String(branchId);
+  }
+
+  const scopedReq = Object.keys(headers).length > 0 ? req.clone({ setHeaders: headers }) : req;
 
   return next(scopedReq);
 };

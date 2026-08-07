@@ -26,5 +26,6 @@ export class SalesInvoiceList {
     isPurchaseSide: false,
     referenceInvoiceType: 'SalesOrder',
     referenceLabel: 'Sales Order (optional)',
+    printable: true,
   };
 }
