@@ -624,6 +624,8 @@ public enum ResponseMessage
     StockAdjustmentNotPendingForReject,
     [Description("This document's date falls within a closed fiscal period.")]
     StockAdjustmentDateInClosedPeriod,
+    [Description("This product is not stock-tracked and cannot be used on a stock adjustment.")]
+    StockAdjustmentProductNotStockTracked,
     [Description("Stock adjustment created as draft.")]
     StockAdjustmentCreated,
     [Description("Stock adjustment updated.")]

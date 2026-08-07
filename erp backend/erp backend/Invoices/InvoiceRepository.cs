@@ -393,16 +393,28 @@ public class InvoiceRepository : IInvoiceRepository
 
         foreach (var line in header.Lines)
         {
-            var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(line.ProductVariant!.Product!.ProductCategoryId);
+            var product = line.ProductVariant!.Product!;
+            var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(product.ProductCategoryId);
             var netAmount = Math.Round(line.Qty * line.UnitAmount, 2);
-            var unitCostPerBase = line.BaseQty > 0 ? netAmount / line.BaseQty : 0;
 
-            await _stockMovementService.ReceiveAsync(
-                line.ProductVariantId, header.WarehouseId, line.BaseQty, unitCostPerBase, header.Date,
-                MovementType.PurchaseReceipt, SourceDocumentType.Invoice, header.Id, line.Id,
-                $"Purchase Invoice {header.InvoiceNo}", username);
+            if (product.IsStockTracked)
+            {
+                var unitCostPerBase = line.BaseQty > 0 ? netAmount / line.BaseQty : 0;
 
-            inventoryDebits[lineMapping.InventoryAssetAccountId] = inventoryDebits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + netAmount;
+                await _stockMovementService.ReceiveAsync(
+                    line.ProductVariantId, header.WarehouseId, line.BaseQty, unitCostPerBase, header.Date,
+                    MovementType.PurchaseReceipt, SourceDocumentType.Invoice, header.Id, line.Id,
+                    $"Purchase Invoice {header.InvoiceNo}", username);
+
+                inventoryDebits[lineMapping.InventoryAssetAccountId] = inventoryDebits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + netAmount;
+            }
+            else
+            {
+                // Non-stock-tracked line (e.g. a purchased/subcontracted service) — no receipt into
+                // inventory; book straight to the category's cost/expense account instead of Inventory Asset.
+                inventoryDebits[lineMapping.COGSAccountId] = inventoryDebits.GetValueOrDefault(lineMapping.COGSAccountId) + netAmount;
+            }
+
             totalTax += line.TaxAmount;
         }
 
@@ -432,15 +444,26 @@ public class InvoiceRepository : IInvoiceRepository
 
         foreach (var line in header.Lines)
         {
-            var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(line.ProductVariant!.Product!.ProductCategoryId);
+            var product = line.ProductVariant!.Product!;
+            var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(product.ProductCategoryId);
             var netAmount = Math.Round(line.Qty * line.UnitAmount, 2);
 
-            await _stockMovementService.IssueAsync(
-                line.ProductVariantId, header.WarehouseId, line.BaseQty, header.Date,
-                MovementType.PurchaseReturnIssue, SourceDocumentType.Invoice, header.Id, line.Id,
-                $"Purchase Return {header.InvoiceNo}", username);
+            if (product.IsStockTracked)
+            {
+                await _stockMovementService.IssueAsync(
+                    line.ProductVariantId, header.WarehouseId, line.BaseQty, header.Date,
+                    MovementType.PurchaseReturnIssue, SourceDocumentType.Invoice, header.Id, line.Id,
+                    $"Purchase Return {header.InvoiceNo}", username);
 
-            inventoryCredits[lineMapping.InventoryAssetAccountId] = inventoryCredits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + netAmount;
+                inventoryCredits[lineMapping.InventoryAssetAccountId] = inventoryCredits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + netAmount;
+            }
+            else
+            {
+                // Mirrors the non-stock-tracked branch in PostPurchaseInvoiceAsync — reverse the
+                // cost/expense account instead of Inventory Asset since nothing was ever received.
+                inventoryCredits[lineMapping.COGSAccountId] = inventoryCredits.GetValueOrDefault(lineMapping.COGSAccountId) + netAmount;
+            }
+
             totalTax += line.TaxAmount;
         }
 
@@ -472,19 +495,26 @@ public class InvoiceRepository : IInvoiceRepository
 
         foreach (var line in header.Lines)
         {
-            var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(line.ProductVariant!.Product!.ProductCategoryId);
+            var product = line.ProductVariant!.Product!;
             var netAmount = Math.Round(line.Qty * line.UnitAmount, 2);
 
-            var result = await _stockMovementService.IssueAsync(
-                line.ProductVariantId, header.WarehouseId, line.BaseQty, header.Date,
-                MovementType.SaleIssue, SourceDocumentType.Invoice, header.Id, line.Id,
-                $"Sales Invoice {header.InvoiceNo}", username);
+            if (product.IsStockTracked)
+            {
+                var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(product.ProductCategoryId);
 
-            line.UnitCostAtSale = result.NewAverageCost;
-            var cogsAmount = Math.Round(line.BaseQty * result.NewAverageCost, 2);
+                var result = await _stockMovementService.IssueAsync(
+                    line.ProductVariantId, header.WarehouseId, line.BaseQty, header.Date,
+                    MovementType.SaleIssue, SourceDocumentType.Invoice, header.Id, line.Id,
+                    $"Sales Invoice {header.InvoiceNo}", username);
 
-            cogsDebits[lineMapping.COGSAccountId] = cogsDebits.GetValueOrDefault(lineMapping.COGSAccountId) + cogsAmount;
-            inventoryCredits[lineMapping.InventoryAssetAccountId] = inventoryCredits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + cogsAmount;
+                line.UnitCostAtSale = result.NewAverageCost;
+                var cogsAmount = Math.Round(line.BaseQty * result.NewAverageCost, 2);
+
+                cogsDebits[lineMapping.COGSAccountId] = cogsDebits.GetValueOrDefault(lineMapping.COGSAccountId) + cogsAmount;
+                inventoryCredits[lineMapping.InventoryAssetAccountId] = inventoryCredits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + cogsAmount;
+            }
+            // Non-stock-tracked line (e.g. a repair/service): no stock issue, no COGS/Inventory
+            // Asset leg — the sale is just revenue against Cash/AR, posted below.
 
             totalRevenue += netAmount;
             totalTax += line.TaxAmount;
@@ -523,23 +553,30 @@ public class InvoiceRepository : IInvoiceRepository
 
         foreach (var line in header.Lines)
         {
-            var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(line.ProductVariant!.Product!.ProductCategoryId);
+            var product = line.ProductVariant!.Product!;
             var netAmount = Math.Round(line.Qty * line.UnitAmount, 2);
 
-            var originalLine = line.ReferenceInvoiceLineId is int refLineId
-                ? await _context.InvoiceLines.FindAsync(refLineId)
-                : null;
-            var unitCostAtSale = originalLine?.UnitCostAtSale ?? 0;
-            line.UnitCostAtSale = unitCostAtSale;
+            if (product.IsStockTracked)
+            {
+                var lineMapping = await _stockAccountMappings.ResolveForCategoryAsync(product.ProductCategoryId);
 
-            await _stockMovementService.ReceiveAsync(
-                line.ProductVariantId, header.WarehouseId, line.BaseQty, unitCostAtSale, header.Date,
-                MovementType.SaleReturnReceipt, SourceDocumentType.Invoice, header.Id, line.Id,
-                $"Sale Return {header.InvoiceNo}", username);
+                var originalLine = line.ReferenceInvoiceLineId is int refLineId
+                    ? await _context.InvoiceLines.FindAsync(refLineId)
+                    : null;
+                var unitCostAtSale = originalLine?.UnitCostAtSale ?? 0;
+                line.UnitCostAtSale = unitCostAtSale;
 
-            var cogsAmount = Math.Round(line.BaseQty * unitCostAtSale, 2);
-            cogsCredits[lineMapping.COGSAccountId] = cogsCredits.GetValueOrDefault(lineMapping.COGSAccountId) + cogsAmount;
-            inventoryDebits[lineMapping.InventoryAssetAccountId] = inventoryDebits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + cogsAmount;
+                await _stockMovementService.ReceiveAsync(
+                    line.ProductVariantId, header.WarehouseId, line.BaseQty, unitCostAtSale, header.Date,
+                    MovementType.SaleReturnReceipt, SourceDocumentType.Invoice, header.Id, line.Id,
+                    $"Sale Return {header.InvoiceNo}", username);
+
+                var cogsAmount = Math.Round(line.BaseQty * unitCostAtSale, 2);
+                cogsCredits[lineMapping.COGSAccountId] = cogsCredits.GetValueOrDefault(lineMapping.COGSAccountId) + cogsAmount;
+                inventoryDebits[lineMapping.InventoryAssetAccountId] = inventoryDebits.GetValueOrDefault(lineMapping.InventoryAssetAccountId) + cogsAmount;
+            }
+            // Non-stock-tracked line: nothing was ever received into inventory, so the return is
+            // just a revenue reversal — no stock receipt, no COGS/Inventory Asset leg.
 
             totalRevenue += netAmount;
             totalTax += line.TaxAmount;

@@ -37,7 +37,9 @@
       </div>
       <div class="field checkbox-field">
         <p-checkbox formControlName="isStockTracked" [binary]="true" inputId="isStockTracked" />
-        <label for="isStockTracked">Track stock for this product</label>
+        <label for="isStockTracked" pTooltip="Untick for services (e.g. repairs, labor, consulting) that have no physical stock to receive or issue.">
+          Track stock for this product
+        </label>
       </div>
     </div>
 

@@ -22,6 +22,7 @@
         <th pSortableColumn="productCategoryName">Category <p-sortIcon field="productCategoryName" /></th>
         <th pSortableColumn="baseUnitOfMeasureCode">Base UOM <p-sortIcon field="baseUnitOfMeasureCode" /></th>
         <th>Variants</th>
+        <th pSortableColumn="isStockTracked">Type <p-sortIcon field="isStockTracked" /></th>
         <th pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
         <th class="actions">Actions</th>
       </tr>
@@ -33,6 +34,13 @@
         <td>{{ product.productCategoryName ?? '—' }}</td>
         <td>{{ product.baseUnitOfMeasureCode }}</td>
         <td>{{ product.hasVariants ? product.variants.length : '—' }}</td>
+        <td>
+          <p-tag
+            [value]="product.isStockTracked ? 'Goods' : 'Service'"
+            [severity]="product.isStockTracked ? 'info' : 'warn'"
+            [pTooltip]="product.isStockTracked ? 'Stock is tracked for this product' : 'Not stock-tracked — e.g. a repair or other service'"
+          />
+        </td>
         <td>
           <p-tag [value]="product.isActive ? 'Active' : 'Inactive'" [severity]="product.isActive ? 'success' : 'danger'" />
         </td>
@@ -52,7 +60,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="7">No products yet. Add a product to get started.</td>
+        <td colspan="8">No products yet. Add a product to get started.</td>
       </tr>
     </ng-template>
   </p-table>

@@ -287,9 +287,15 @@ public class StockAdjustmentRepository : IStockAdjustmentRepository
 
     private async Task<StockAdjustmentLine> BuildLineAsync(StockAdjustmentLineRequest lineRequest)
     {
-        if (await _context.ProductVariants.FindAsync(lineRequest.ProductVariantId) is null)
+        var variant = await _context.ProductVariants.Include(v => v.Product)
+            .FirstOrDefaultAsync(v => v.Id == lineRequest.ProductVariantId)
+            ?? throw new BadRequestException(ResponseMessage.StockMovementVariantNotFound);
+
+        // A stock adjustment only makes sense for a physically stocked item — non-stock-tracked
+        // products (services) never carry a StockBalance to adjust.
+        if (!variant.Product!.IsStockTracked)
         {
-            throw new BadRequestException(ResponseMessage.StockMovementVariantNotFound);
+            throw new BadRequestException(ResponseMessage.StockAdjustmentProductNotStockTracked);
         }
 
         if (lineRequest.BaseQty <= 0)

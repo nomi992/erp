@@ -240,7 +240,9 @@ export class StockAdjustmentForm implements OnInit {
         this.warehouseOptions.set((warehouses.data ?? []).map((w) => ({ label: w.name, value: w.id })));
 
         const options: { label: string; value: number }[] = [];
-        for (const product of products.data ?? []) {
+        // Non-stock-tracked products (services) have no StockBalance to adjust — the backend
+        // rejects them outright, so keep them out of the picker rather than surfacing that as a save error.
+        for (const product of (products.data ?? []).filter((p) => p.isStockTracked)) {
           for (const variant of product.variants.filter((v) => v.isActive)) {
             options.push({ label: `${product.name} - ${variant.name} (${variant.variantCode})`, value: variant.id });
           }
