@@ -49,6 +49,12 @@
             [pTooltip]="partner.isActive ? 'Deactivate' : 'Activate'"
             (onClick)="toggleActive(partner)"
           />
+          @if (partner.receivableAccountId) {
+            <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" pTooltip="Receivable Ledger" (onClick)="viewLedger(partner.receivableAccountId)" />
+          }
+          @if (partner.payableAccountId) {
+            <p-button icon="pi pi-book" [text]="true" [rounded]="true" size="small" pTooltip="Payable Ledger" (onClick)="viewLedger(partner.payableAccountId)" />
+          }
         </td>
       </tr>
     </ng-template>

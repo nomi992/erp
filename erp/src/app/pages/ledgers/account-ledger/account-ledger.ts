@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { PrimeTemplate } from 'primeng/api';
@@ -46,6 +46,7 @@ export class AccountLedgerPage implements OnInit {
   private readonly ledgerService = inject(LedgerService);
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly loadingAccounts = signal(false);
   readonly loading = signal(false);
@@ -60,6 +61,14 @@ export class AccountLedgerPage implements OnInit {
 
   ngOnInit(): void {
     this.loadAccounts();
+
+    // Deep link from e.g. the Business Partners "View Ledger" action, which navigates here with
+    // ?accountId=<id> instead of making the user re-pick the account from the dropdown.
+    const accountIdParam = Number(this.route.snapshot.queryParamMap.get('accountId'));
+    if (Number.isInteger(accountIdParam) && accountIdParam > 0) {
+      this.form.patchValue({ accountId: accountIdParam });
+      this.load();
+    }
   }
 
   loadAccounts(): void {

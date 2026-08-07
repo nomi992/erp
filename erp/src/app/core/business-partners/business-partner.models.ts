@@ -13,6 +13,8 @@ export interface BusinessPartner {
   creditLimit: number | null;
   isActive: boolean;
   createdAtUtc: string;
+  receivableAccountId: number | null;
+  payableAccountId: number | null;
 }
 
 export interface BusinessPartnerRequest {

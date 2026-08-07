@@ -4,6 +4,7 @@ using erp_backend.Exceptions;
 using erp_backend.Inventory;
 using erp_backend.Messages;
 using erp_backend.Models;
+using erp_backend.Partners;
 using erp_backend.PartnerPayments.Dtos;
 using erp_backend.Vouchers;
 using Microsoft.EntityFrameworkCore;
@@ -19,13 +20,16 @@ public class PartnerPaymentRepository : IPartnerPaymentRepository
     };
 
     private readonly AppDbContext _context;
-    private readonly IStockAccountMappingRepository _stockAccountMappings;
+    private readonly IPartnerLedgerAccountResolver _partnerLedgerAccounts;
     private readonly IAuditLogger _auditLogger;
 
-    public PartnerPaymentRepository(AppDbContext context, IStockAccountMappingRepository stockAccountMappings, IAuditLogger auditLogger)
+    public PartnerPaymentRepository(
+        AppDbContext context,
+        IPartnerLedgerAccountResolver partnerLedgerAccounts,
+        IAuditLogger auditLogger)
     {
         _context = context;
-        _stockAccountMappings = stockAccountMappings;
+        _partnerLedgerAccounts = partnerLedgerAccounts;
         _auditLogger = auditLogger;
     }
 
@@ -161,6 +165,7 @@ public class PartnerPaymentRepository : IPartnerPaymentRepository
     {
         var header = await _context.PartnerPaymentHeaders
             .Include(p => p.Allocations).ThenInclude(a => a.InvoiceHeader)
+            .Include(p => p.Partner)
             .FirstOrDefaultAsync(p => p.Id == id)
             ?? throw new NotFoundException(ResponseMessage.PartnerPaymentNotFound);
 
@@ -187,8 +192,6 @@ public class PartnerPaymentRepository : IPartnerPaymentRepository
                 : invoice.AmountPaid > 0 ? InvoicePaymentStatus.PartiallyPaid : InvoicePaymentStatus.Unpaid;
         }
 
-        var controlMapping = await _stockAccountMappings.ResolveForCategoryAsync(null);
-
         var voucher = new VoucherHeader
         {
             VoucherType = header.Direction == PaymentDirection.CustomerReceipt ? VoucherType.Receipt : VoucherType.Payment,
@@ -202,12 +205,14 @@ public class PartnerPaymentRepository : IPartnerPaymentRepository
 
         if (header.Direction == PaymentDirection.CustomerReceipt)
         {
+            var receivableAccountId = await _partnerLedgerAccounts.GetOrCreateReceivableAccountIdAsync(header.Partner!);
             voucher.Details.Add(new VoucherDetail { AccountId = header.BankOrCashAccountId, DebitAmount = header.TotalAmount });
-            voucher.Details.Add(new VoucherDetail { AccountId = controlMapping.AccountsReceivableAccountId, CreditAmount = header.TotalAmount });
+            voucher.Details.Add(new VoucherDetail { AccountId = receivableAccountId, CreditAmount = header.TotalAmount });
         }
         else
         {
-            voucher.Details.Add(new VoucherDetail { AccountId = controlMapping.AccountsPayableAccountId, DebitAmount = header.TotalAmount });
+            var payableAccountId = await _partnerLedgerAccounts.GetOrCreatePayableAccountIdAsync(header.Partner!);
+            voucher.Details.Add(new VoucherDetail { AccountId = payableAccountId, DebitAmount = header.TotalAmount });
             voucher.Details.Add(new VoucherDetail { AccountId = header.BankOrCashAccountId, CreditAmount = header.TotalAmount });
         }
 

@@ -1,5 +1,6 @@
 using erp_backend.Data;
 using erp_backend.Exceptions;
+using erp_backend.Inventory;
 using erp_backend.Ledgers.Dtos;
 using erp_backend.Messages;
 using erp_backend.Models;
@@ -10,10 +11,12 @@ namespace erp_backend.Ledgers;
 public class SubLedgerRepository : ISubLedgerRepository
 {
     private readonly AppDbContext _context;
+    private readonly IStockAccountMappingRepository _stockAccountMappings;
 
-    public SubLedgerRepository(AppDbContext context)
+    public SubLedgerRepository(AppDbContext context, IStockAccountMappingRepository stockAccountMappings)
     {
         _context = context;
+        _stockAccountMappings = stockAccountMappings;
     }
 
     public async Task<List<SubLedgerEntryResponse>> GetAgingAsync(string type, DateTime asOf, int? controlAccountId)
@@ -23,9 +26,12 @@ public class SubLedgerRepository : ISubLedgerRepository
             throw new BadRequestException(ResponseMessage.SubLedgerTypeInvalid);
         }
 
+        // Prefer the control account actually used for AR/AP postings (and for provisioning partner
+        // sub-accounts, see PartnerLedgerAccountResolver) over the name-based convention search, so the
+        // sub-ledger always walks the same control account real postings hit.
         var controlAccount = controlAccountId is int id
             ? await _context.Accounts.FindAsync(id)
-            : await FindControlAccountByConventionAsync(type);
+            : await FindDefaultControlAccountAsync(type) ?? await FindControlAccountByConventionAsync(type);
 
         if (controlAccount is null)
         {
@@ -77,6 +83,22 @@ public class SubLedgerRepository : ISubLedgerRepository
         }
 
         return results.OrderByDescending(r => r.AgeInDays).ToList();
+    }
+
+    private async Task<Account?> FindDefaultControlAccountAsync(string type)
+    {
+        StockAccountMapping controlMapping;
+        try
+        {
+            controlMapping = await _stockAccountMappings.ResolveForCategoryAsync(null);
+        }
+        catch (BadRequestException)
+        {
+            return null;
+        }
+
+        var accountId = type == "Receivable" ? controlMapping.AccountsReceivableAccountId : controlMapping.AccountsPayableAccountId;
+        return await _context.Accounts.FindAsync(accountId);
     }
 
     private async Task<Account?> FindControlAccountByConventionAsync(string type)

@@ -96,6 +96,7 @@ builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository
 builder.Services.AddScoped<IUnitOfMeasureRepository, UnitOfMeasureRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBusinessPartnerRepository, BusinessPartnerRepository>();
+builder.Services.AddScoped<IPartnerLedgerAccountResolver, PartnerLedgerAccountResolver>();
 builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IStockAccountMappingRepository, StockAccountMappingRepository>();
 builder.Services.AddScoped<IStockMovementService, StockMovementService>();

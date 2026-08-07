@@ -6,6 +6,7 @@ using erp_backend.Inventory;
 using erp_backend.Invoices.Dtos;
 using erp_backend.Messages;
 using erp_backend.Models;
+using erp_backend.Partners;
 using erp_backend.Vouchers;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +28,7 @@ public class InvoiceRepository : IInvoiceRepository
     private readonly IFiscalPeriodGuard _fiscalPeriodGuard;
     private readonly IStockMovementService _stockMovementService;
     private readonly IStockAccountMappingRepository _stockAccountMappings;
+    private readonly IPartnerLedgerAccountResolver _partnerLedgerAccounts;
     private readonly IAuditLogger _auditLogger;
 
     public InvoiceRepository(
@@ -34,12 +36,14 @@ public class InvoiceRepository : IInvoiceRepository
         IFiscalPeriodGuard fiscalPeriodGuard,
         IStockMovementService stockMovementService,
         IStockAccountMappingRepository stockAccountMappings,
+        IPartnerLedgerAccountResolver partnerLedgerAccounts,
         IAuditLogger auditLogger)
     {
         _context = context;
         _fiscalPeriodGuard = fiscalPeriodGuard;
         _stockMovementService = stockMovementService;
         _stockAccountMappings = stockAccountMappings;
+        _partnerLedgerAccounts = partnerLedgerAccounts;
         _auditLogger = auditLogger;
     }
 
@@ -236,6 +240,7 @@ public class InvoiceRepository : IInvoiceRepository
         var header = await _context.InvoiceHeaders
             .Include(h => h.Lines).ThenInclude(l => l.ProductVariant).ThenInclude(v => v!.Product)
             .Include(h => h.ReferenceInvoice).ThenInclude(r => r!.Lines)
+            .Include(h => h.Partner)
             .FirstOrDefaultAsync(h => h.Id == id)
             ?? throw new NotFoundException(ResponseMessage.InvoiceNotFound);
 
@@ -415,7 +420,7 @@ public class InvoiceRepository : IInvoiceRepository
         var total = header.Lines.Sum(l => l.LineTotal);
         var creditAccountId = header.PaymentMode == PaymentMode.Cash
             ? controlMapping.CashOrBankAccountId ?? throw new BadRequestException(ResponseMessage.InvoiceNoStockAccountMapping)
-            : controlMapping.AccountsPayableAccountId;
+            : await _partnerLedgerAccounts.GetOrCreatePayableAccountIdAsync(header.Partner!);
 
         voucher.Details.Add(new VoucherDetail { AccountId = creditAccountId, CreditAmount = total });
     }
@@ -442,7 +447,7 @@ public class InvoiceRepository : IInvoiceRepository
         var total = header.Lines.Sum(l => l.LineTotal);
         var debitAccountId = header.PaymentMode == PaymentMode.Cash
             ? controlMapping.CashOrBankAccountId ?? throw new BadRequestException(ResponseMessage.InvoiceNoStockAccountMapping)
-            : controlMapping.AccountsPayableAccountId;
+            : await _partnerLedgerAccounts.GetOrCreatePayableAccountIdAsync(header.Partner!);
 
         voucher.Details.Add(new VoucherDetail { AccountId = debitAccountId, DebitAmount = total });
 
@@ -487,7 +492,7 @@ public class InvoiceRepository : IInvoiceRepository
 
         var debitAccountId = header.PaymentMode == PaymentMode.Cash
             ? controlMapping.CashOrBankAccountId ?? throw new BadRequestException(ResponseMessage.InvoiceNoStockAccountMapping)
-            : controlMapping.AccountsReceivableAccountId;
+            : await _partnerLedgerAccounts.GetOrCreateReceivableAccountIdAsync(header.Partner!);
 
         voucher.Details.Add(new VoucherDetail { AccountId = debitAccountId, DebitAmount = totalRevenue + totalTax });
         voucher.Details.Add(new VoucherDetail { AccountId = controlMapping.SalesRevenueAccountId, CreditAmount = totalRevenue });
@@ -550,7 +555,7 @@ public class InvoiceRepository : IInvoiceRepository
 
         var creditAccountId = header.PaymentMode == PaymentMode.Cash
             ? controlMapping.CashOrBankAccountId ?? throw new BadRequestException(ResponseMessage.InvoiceNoStockAccountMapping)
-            : controlMapping.AccountsReceivableAccountId;
+            : await _partnerLedgerAccounts.GetOrCreateReceivableAccountIdAsync(header.Partner!);
 
         voucher.Details.Add(new VoucherDetail { AccountId = creditAccountId, CreditAmount = totalRevenue + totalTax });
 

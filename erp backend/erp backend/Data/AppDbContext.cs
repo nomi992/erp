@@ -367,6 +367,9 @@ public class AppDbContext : DbContext
         {
             entity.HasIndex(p => new { p.TenantId, p.Code }).IsUnique();
             entity.Property(p => p.CreditLimit).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(p => p.ReceivableAccount).WithMany().HasForeignKey(p => p.ReceivableAccountId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.PayableAccount).WithMany().HasForeignKey(p => p.PayableAccountId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Warehouse>(entity =>

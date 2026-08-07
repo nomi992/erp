@@ -24,4 +24,12 @@ public class BusinessPartner : ITenantScoped
     public decimal? CreditLimit { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    // Sub-ledger accounts (children of the Debtors/Creditors control account) that AR/AP postings
+    // for this partner's invoices and payments hit, instead of the shared tenant-wide control account.
+    // Provisioned lazily by IPartnerLedgerAccountResolver, not backfilled by migration.
+    public int? ReceivableAccountId { get; set; }
+    public Account? ReceivableAccount { get; set; }
+    public int? PayableAccountId { get; set; }
+    public Account? PayableAccount { get; set; }
 }

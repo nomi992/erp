@@ -16,6 +16,8 @@ public class BusinessPartnerResponse
     public decimal? CreditLimit { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAtUtc { get; set; }
+    public int? ReceivableAccountId { get; set; }
+    public int? PayableAccountId { get; set; }
 
     public static BusinessPartnerResponse FromEntity(BusinessPartner entity) =>
         new()
@@ -32,5 +34,7 @@ public class BusinessPartnerResponse
             CreditLimit = entity.CreditLimit,
             IsActive = entity.IsActive,
             CreatedAtUtc = entity.CreatedAtUtc,
+            ReceivableAccountId = entity.ReceivableAccountId,
+            PayableAccountId = entity.PayableAccountId,
         };
 }

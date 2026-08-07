@@ -10,10 +10,12 @@ namespace erp_backend.Partners;
 public class BusinessPartnerRepository : IBusinessPartnerRepository
 {
     private readonly AppDbContext _context;
+    private readonly IPartnerLedgerAccountResolver _ledgerAccounts;
 
-    public BusinessPartnerRepository(AppDbContext context)
+    public BusinessPartnerRepository(AppDbContext context, IPartnerLedgerAccountResolver ledgerAccounts)
     {
         _context = context;
+        _ledgerAccounts = ledgerAccounts;
     }
 
     public async Task<List<BusinessPartnerResponse>> GetAllAsync(PartnerType? partnerType)
@@ -66,6 +68,7 @@ public class BusinessPartnerRepository : IBusinessPartnerRepository
         };
 
         _context.BusinessPartners.Add(partner);
+        await _ledgerAccounts.EnsureLedgerAccountsAsync(partner);
         await _context.SaveChangesAsync();
 
         return BusinessPartnerResponse.FromEntity(partner);
@@ -90,6 +93,7 @@ public class BusinessPartnerRepository : IBusinessPartnerRepository
         partner.DefaultPaymentTermDays = request.DefaultPaymentTermDays;
         partner.CreditLimit = request.CreditLimit;
 
+        await _ledgerAccounts.EnsureLedgerAccountsAsync(partner);
         await _context.SaveChangesAsync();
 
         return BusinessPartnerResponse.FromEntity(partner);

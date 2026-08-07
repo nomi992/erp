@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { PrimeTemplate } from 'primeng/api';
@@ -43,6 +44,7 @@ export class BusinessPartnerList implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly partnerService = inject(BusinessPartnerService);
   private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -147,6 +149,10 @@ export class BusinessPartnerList implements OnInit {
         this.notificationService.error(this.extractErrorMessage(error, 'Unable to update status.'));
       },
     });
+  }
+
+  viewLedger(accountId: number): void {
+    this.router.navigate(['/ledgers/account'], { queryParams: { accountId } });
   }
 
   private extractErrorMessage(error: HttpErrorResponse, fallback: string): string {
