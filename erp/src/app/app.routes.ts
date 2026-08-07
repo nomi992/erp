@@ -8,6 +8,8 @@ import { FiscalPeriods } from './pages/fiscal-periods/fiscal-periods';
 import { TaxRates } from './pages/tax-rates/tax-rates';
 import { VoucherList } from './pages/vouchers/voucher-list/voucher-list';
 import { VoucherForm } from './pages/vouchers/voucher-form/voucher-form';
+import { PaymentVoucherForm } from './pages/payment-vouchers/payment-voucher-form';
+import { ReceiptVoucherForm } from './pages/receipt-vouchers/receipt-voucher-form';
 import { RecurringVouchers } from './pages/recurring-vouchers/recurring-vouchers';
 import { GeneralLedger } from './pages/ledgers/general-ledger/general-ledger';
 import { AccountLedgerPage } from './pages/ledgers/account-ledger/account-ledger';
@@ -82,6 +84,8 @@ export const routes: Routes = [
 
       { path: 'vouchers', component: VoucherList },
       { path: 'vouchers/new', component: VoucherForm },
+      { path: 'vouchers/payment/new', component: PaymentVoucherForm },
+      { path: 'vouchers/receipt/new', component: ReceiptVoucherForm },
       { path: 'vouchers/:id/edit', component: VoucherForm, data: { mode: 'edit' } },
       { path: 'vouchers/:id', component: VoucherForm, data: { mode: 'view' } },
       { path: 'recurring-vouchers', component: RecurringVouchers },

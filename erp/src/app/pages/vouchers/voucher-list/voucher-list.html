@@ -3,7 +3,11 @@
 <p-card>
   <div class="toolbar responsive-toolbar">
     <h2>Vouchers</h2>
-    <p-button *appHasRight="RightCode.VouchersCreate" label="New Voucher" icon="pi pi-plus" (onClick)="createVoucher()" />
+    <div class="toolbar-actions">
+      <p-button *appHasRight="RightCode.VouchersCreate" label="New Payment Voucher" icon="pi pi-arrow-up" severity="secondary" [outlined]="true" (onClick)="createPaymentVoucher()" />
+      <p-button *appHasRight="RightCode.VouchersCreate" label="New Receipt Voucher" icon="pi pi-arrow-down" severity="secondary" [outlined]="true" (onClick)="createReceiptVoucher()" />
+      <p-button *appHasRight="RightCode.VouchersCreate" label="New Voucher" icon="pi pi-plus" (onClick)="createVoucher()" />
+    </div>
   </div>
 
   <form [formGroup]="filterForm" class="filter-bar responsive-filter-bar" (ngSubmit)="load()">

@@ -23,6 +23,8 @@ public class CreateAccountRequest
 
     public bool IsCashAccount { get; set; }
 
+    public bool IsBankAccount { get; set; }
+
     public decimal OpeningBalance { get; set; }
 
     public AccountNature OpeningBalanceNature { get; set; } = AccountNature.Debit;

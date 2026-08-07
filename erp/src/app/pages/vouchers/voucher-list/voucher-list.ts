@@ -147,6 +147,14 @@ export class VoucherList implements OnInit {
     this.router.navigate(['/vouchers/new']);
   }
 
+  createPaymentVoucher(): void {
+    this.router.navigate(['/vouchers/payment/new']);
+  }
+
+  createReceiptVoucher(): void {
+    this.router.navigate(['/vouchers/receipt/new']);
+  }
+
   editVoucher(voucher: VoucherListItem): void {
     this.router.navigate(['/vouchers', voucher.id, 'edit']);
   }

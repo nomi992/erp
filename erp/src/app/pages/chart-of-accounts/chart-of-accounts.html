@@ -39,6 +39,9 @@
             @if (node.data.isCashAccount) {
               <p-tag value="Cash" severity="info" />
             }
+            @if (node.data.isBankAccount) {
+              <p-tag value="Bank" severity="info" />
+            }
           </span>
           <span>
             <p-tag [value]="node.data.isActive ? 'Active' : 'Inactive'" [severity]="node.data.isActive ? 'success' : 'danger'" />
@@ -152,7 +155,12 @@
 
     <div class="field-row">
       <p-toggleswitch inputId="isCashAccount" formControlName="isCashAccount" />
-      <label for="isCashAccount">Cash / Bank Account</label>
+      <label for="isCashAccount">Cash Account</label>
+    </div>
+
+    <div class="field-row">
+      <p-toggleswitch inputId="isBankAccount" formControlName="isBankAccount" />
+      <label for="isBankAccount">Bank Account</label>
     </div>
 
     <div class="dialog-actions">

@@ -94,6 +94,7 @@ public class AccountRepository : IAccountRepository
             ParentAccountId = request.ParentAccountId,
             IsControlAccount = request.IsControlAccount,
             IsCashAccount = request.IsCashAccount,
+            IsBankAccount = request.IsBankAccount,
             OpeningBalance = request.OpeningBalance,
             OpeningBalanceNature = request.OpeningBalanceNature,
         };
@@ -137,6 +138,7 @@ public class AccountRepository : IAccountRepository
         account.ParentAccountId = request.ParentAccountId;
         account.IsControlAccount = request.IsControlAccount;
         account.IsCashAccount = request.IsCashAccount;
+        account.IsBankAccount = request.IsBankAccount;
         account.OpeningBalance = request.OpeningBalance;
         account.OpeningBalanceNature = request.OpeningBalanceNature;
 

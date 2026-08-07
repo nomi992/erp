@@ -30,6 +30,7 @@ public class Account : ITenantScoped
     public bool IsActive { get; set; } = true;
     public bool IsControlAccount { get; set; }
     public bool IsCashAccount { get; set; }
+    public bool IsBankAccount { get; set; }
     public decimal OpeningBalance { get; set; }
     public AccountNature OpeningBalanceNature { get; set; } = AccountNature.Debit;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

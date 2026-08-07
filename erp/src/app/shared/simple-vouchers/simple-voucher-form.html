@@ -1,0 +1,64 @@
+<p-card>
+  <div class="toolbar">
+    <h2>{{ config().title }}</h2>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="simple-voucher-form">
+    <div class="field-row">
+      <div class="field">
+        <label for="date">Date</label>
+        <p-datepicker inputId="date" formControlName="date" dateFormat="yy-mm-dd" [showIcon]="true" />
+      </div>
+
+      <div class="field">
+        <label for="amount">Amount</label>
+        <p-inputNumber inputId="amount" formControlName="amount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0.01" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="postingAccountId">{{ config().postingAccountLabel }}</label>
+      <p-select
+        inputId="postingAccountId"
+        formControlName="postingAccountId"
+        [options]="postingAccountOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [filter]="true"
+        filterBy="label"
+        placeholder="Select account"
+      />
+    </div>
+
+    <div class="field-row bank-toggle-row">
+      <div class="toggle-field">
+        <p-toggleswitch inputId="isBank" formControlName="isBank" (onChange)="onBankToggleChange()" />
+        <label for="isBank">This is a bank account</label>
+      </div>
+
+      <div class="field">
+        <label for="bankOrCashAccountId">{{ form.controls.isBank.value ? 'Bank Account' : 'Cash Account' }}</label>
+        <p-select
+          inputId="bankOrCashAccountId"
+          formControlName="bankOrCashAccountId"
+          [options]="bankOrCashOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          [placeholder]="form.controls.isBank.value ? 'Select bank account' : 'Select cash account'"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="narration">Narration</label>
+      <textarea id="narration" pTextarea rows="2" formControlName="narration" placeholder="What is this for?"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true" type="button" (onClick)="cancel()" />
+      <p-button *appHasRight="config().createRight" label="Save" type="submit" [loading]="saving()" [disabled]="!canSave()" />
+    </div>
+  </form>
+</p-card>

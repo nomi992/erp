@@ -104,6 +104,7 @@ export class ChartOfAccounts implements OnInit {
     parentAccountId: this.fb.control<number | null>(null),
     isControlAccount: [false],
     isCashAccount: [false],
+    isBankAccount: [false],
     openingBalance: [0],
     openingBalanceNature: this.fb.nonNullable.control<AccountNature>('Debit', [Validators.required]),
   });
@@ -138,6 +139,7 @@ export class ChartOfAccounts implements OnInit {
       parentAccountId: parent?.id ?? null,
       isControlAccount: false,
       isCashAccount: false,
+      isBankAccount: false,
       openingBalance: 0,
       openingBalanceNature: 'Debit',
     });
@@ -155,6 +157,7 @@ export class ChartOfAccounts implements OnInit {
       parentAccountId: account.parentAccountId,
       isControlAccount: account.isControlAccount,
       isCashAccount: account.isCashAccount,
+      isBankAccount: account.isBankAccount,
       openingBalance: account.openingBalance,
       openingBalanceNature: account.openingBalanceNature,
     });

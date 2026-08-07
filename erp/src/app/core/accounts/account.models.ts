@@ -12,6 +12,7 @@ export interface Account {
   isActive: boolean;
   isControlAccount: boolean;
   isCashAccount: boolean;
+  isBankAccount: boolean;
   openingBalance: number;
   openingBalanceNature: AccountNature;
 }
@@ -26,6 +27,7 @@ export interface AccountTreeNode {
   isActive: boolean;
   isControlAccount: boolean;
   isCashAccount: boolean;
+  isBankAccount: boolean;
   openingBalance: number;
   openingBalanceNature: AccountNature;
   children: AccountTreeNode[];
@@ -39,6 +41,7 @@ export interface CreateAccountRequest {
   parentAccountId: number | null;
   isControlAccount: boolean;
   isCashAccount: boolean;
+  isBankAccount: boolean;
   openingBalance: number;
   openingBalanceNature: AccountNature;
 }

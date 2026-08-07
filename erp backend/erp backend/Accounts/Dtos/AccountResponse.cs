@@ -14,6 +14,7 @@ public class AccountResponse
     public bool IsActive { get; set; }
     public bool IsControlAccount { get; set; }
     public bool IsCashAccount { get; set; }
+    public bool IsBankAccount { get; set; }
     public decimal OpeningBalance { get; set; }
     public AccountNature OpeningBalanceNature { get; set; }
 
@@ -30,6 +31,7 @@ public class AccountResponse
             IsActive = account.IsActive,
             IsControlAccount = account.IsControlAccount,
             IsCashAccount = account.IsCashAccount,
+            IsBankAccount = account.IsBankAccount,
             OpeningBalance = account.OpeningBalance,
             OpeningBalanceNature = account.OpeningBalanceNature,
         };
