@@ -46,7 +46,4 @@ public class StockAdjustmentHeader : IBranchScoped
     public DateTime? ApprovedAtUtc { get; set; }
 
     public List<StockAdjustmentLine> Lines { get; set; } = [];
-
-    [System.ComponentModel.DataAnnotations.Timestamp]
-    public byte[] RowVersion { get; set; } = [];
 }

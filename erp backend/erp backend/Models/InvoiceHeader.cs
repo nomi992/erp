@@ -83,7 +83,4 @@ public class InvoiceHeader : IBranchScoped
     public DateTime? ApprovedAtUtc { get; set; }
 
     public List<InvoiceLine> Lines { get; set; } = [];
-
-    [System.ComponentModel.DataAnnotations.Timestamp]
-    public byte[] RowVersion { get; set; } = [];
 }

@@ -39,7 +39,4 @@ public class PartnerPaymentHeader : IBranchScoped
     public DateTime? ApprovedAtUtc { get; set; }
 
     public List<PartnerPaymentAllocation> Allocations { get; set; } = [];
-
-    [System.ComponentModel.DataAnnotations.Timestamp]
-    public byte[] RowVersion { get; set; } = [];
 }

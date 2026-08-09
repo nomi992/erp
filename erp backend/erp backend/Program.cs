@@ -65,9 +65,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 builder.Services.AddScoped<IFiscalPeriodGuard, FiscalPeriodGuard>();
@@ -164,20 +163,38 @@ using (var scope = app.Services.CreateScope())
         var adminRoleId = db.Roles.First(r => r.TenantId == null && r.Name == AppRoles.Admin).Id;
         var systemAdminRoleId = db.Roles.First(r => r.TenantId == null && r.Name == AppRoles.SystemAdmin).Id;
 
+        // The "admin" dev user belongs to a Default tenant/branch (Id 1 on a fresh DB), but nothing
+        // else seeds that tenant/branch, so it must be created here before the user can reference it.
+        var defaultTenant = db.Tenants.FirstOrDefault(t => t.Code == "DEFAULT");
+        if (defaultTenant is null)
+        {
+            defaultTenant = new Tenant { Name = "Default", Code = "DEFAULT", IsActive = true };
+            db.Tenants.Add(defaultTenant);
+            db.SaveChanges();
+        }
+
+        var defaultBranch = db.Branches.FirstOrDefault(b => b.TenantId == defaultTenant.Id && b.Code == "MAIN");
+        if (defaultBranch is null)
+        {
+            defaultBranch = new Branch { TenantId = defaultTenant.Id, Name = "Main Branch", Code = "MAIN", IsActive = true };
+            db.Branches.Add(defaultBranch);
+            db.SaveChanges();
+        }
+
         var admin = db.Users.IgnoreQueryFilters().FirstOrDefault(u => u.Username == "admin");
         if (admin is null)
         {
             var hasher = new PasswordHasher<User>();
-            admin = new User { Username = "admin", RoleId = adminRoleId, TenantId = 1 };
+            admin = new User { Username = "admin", RoleId = adminRoleId, TenantId = defaultTenant.Id };
             admin.PasswordHash = hasher.HashPassword(admin, "Admin@123");
             db.Users.Add(admin);
             db.SaveChanges();
         }
 
-        var hasDefaultBranchGrant = db.UserBranches.Any(ub => ub.UserId == admin.Id && ub.BranchId == 1);
+        var hasDefaultBranchGrant = db.UserBranches.Any(ub => ub.UserId == admin.Id && ub.BranchId == defaultBranch.Id);
         if (!hasDefaultBranchGrant)
         {
-            db.UserBranches.Add(new UserBranch { UserId = admin.Id, BranchId = 1 });
+            db.UserBranches.Add(new UserBranch { UserId = admin.Id, BranchId = defaultBranch.Id });
             db.SaveChanges();
         }
 
@@ -206,6 +223,15 @@ using (var scope = app.Services.CreateScope())
             // this is a one-time dev-data correction, not a runtime cross-tenant move.
             db.Database.ExecuteSql($"UPDATE Users SET TenantId = {platformTenant.Id} WHERE Id = {superAdmin.Id}");
         }
+
+        // Explicit opt-in only — posting ~1300 stock movements through the full repository/voucher
+        // pipeline takes real time, so this never runs on a plain `dotnet run`.
+        var runDemoSeed = args.Contains("--seed-demo", StringComparer.OrdinalIgnoreCase)
+            || string.Equals(Environment.GetEnvironmentVariable("SEED_DEMO_DATA"), "true", StringComparison.OrdinalIgnoreCase);
+        if (runDemoSeed)
+        {
+            await DemoDataSeeder.SeedAsync(scope.ServiceProvider, defaultTenant.Id, defaultBranch.Id);
+        }
     }
 }
 
@@ -216,7 +242,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Skipped in Development so the plain-HTTP launch profile (port 5023) actually serves
+// plain HTTP, instead of bouncing to the HTTPS port and its self-signed dev cert — which
+// mobile clients (erp-mobile, over a USB adb-reverse tunnel) can't be made to trust the way
+// a browser can. The Angular web app never hits port 5023 directly (it targets 7002/HTTPS
+// per environment.development.ts), so this has no effect on it. Production is unaffected.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("Frontend");
 

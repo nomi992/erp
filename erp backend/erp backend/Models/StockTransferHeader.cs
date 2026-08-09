@@ -40,7 +40,4 @@ public class StockTransferHeader : IBranchScoped
     public DateTime? ReceivedAtUtc { get; set; }
 
     public List<StockTransferLine> Lines { get; set; } = [];
-
-    [System.ComponentModel.DataAnnotations.Timestamp]
-    public byte[] RowVersion { get; set; } = [];
 }

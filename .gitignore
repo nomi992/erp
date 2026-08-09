@@ -7,10 +7,20 @@
 **/dist/
 **/.angular/
 
+# Expo / React Native (erp-mobile)
+**/.expo/
+**/web-build/
+
 # Editor / OS
 .vs/
 *.user
 .DS_Store
 
+# Claude Code local state
+**/.claude/
+
 # Logs
 *.log
+
+# Stray files (accidental `> nul` redirects on Windows)
+nul

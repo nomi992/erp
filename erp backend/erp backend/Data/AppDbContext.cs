@@ -179,6 +179,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<FiscalPeriod>(entity =>
         {
             entity.HasIndex(f => f.TenantId);
+            // Plain calendar dates, not instants — map to a Kind-agnostic Postgres type so values
+            // bound from query strings/JSON (DateTime.Kind == Unspecified) don't throw against
+            // "timestamp with time zone", which Npgsql only accepts UTC-kind values for.
+            entity.Property(f => f.StartDate).HasColumnType("timestamp without time zone");
+            entity.Property(f => f.EndDate).HasColumnType("timestamp without time zone");
         });
 
         modelBuilder.Entity<VoucherHeader>(entity =>
@@ -186,6 +191,8 @@ public class AppDbContext : DbContext
             entity.HasIndex(v => new { v.TenantId, v.BranchId, v.VoucherNo }).IsUnique();
             entity.HasIndex(v => new { v.TenantId, v.BranchId });
             entity.Property(v => v.ExchangeRate).HasColumnType("decimal(18,6)");
+            entity.Property(v => v.Date).HasColumnType("timestamp without time zone");
+            entity.Property<uint>("xmin").IsRowVersion();
 
             entity.HasOne(v => v.ReversalOfVoucher)
                 .WithMany()
@@ -234,6 +241,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<RecurringVoucherTemplate>(entity =>
         {
             entity.HasIndex(t => new { t.TenantId, t.BranchId });
+            entity.Property(t => t.NextRunDate).HasColumnType("timestamp without time zone");
 
             entity.HasMany(t => t.Lines)
                 .WithOne(l => l.RecurringVoucherTemplate)
@@ -262,6 +270,7 @@ public class AppDbContext : DbContext
         {
             entity.HasIndex(b => new { b.TenantId, b.BranchId });
             entity.Property(b => b.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(b => b.TransactionDate).HasColumnType("timestamp without time zone");
 
             entity.HasOne(b => b.BankAccount)
                 .WithMany()
@@ -408,6 +417,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.TotalCostSigned).HasColumnType("decimal(18,2)");
             entity.Property(e => e.RunningQuantity).HasColumnType("decimal(18,4)");
             entity.Property(e => e.RunningValue).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TransactionDate).HasColumnType("timestamp without time zone");
 
             entity.HasOne(e => e.ProductVariant).WithMany().HasForeignKey(e => e.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Warehouse).WithMany().HasForeignKey(e => e.WarehouseId).OnDelete(DeleteBehavior.Restrict);
@@ -430,6 +440,9 @@ public class AppDbContext : DbContext
             entity.HasIndex(h => new { h.TenantId, h.BranchId, h.InvoiceType, h.Status });
             entity.Property(h => h.AmountPaid).HasColumnType("decimal(18,2)");
             entity.Property(h => h.OutstandingAmount).HasColumnType("decimal(18,2)");
+            entity.Property(h => h.Date).HasColumnType("timestamp without time zone");
+            entity.Property(h => h.DueDate).HasColumnType("timestamp without time zone");
+            entity.Property<uint>("xmin").IsRowVersion();
 
             entity.HasOne(h => h.Partner).WithMany().HasForeignKey(h => h.PartnerId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(h => h.Warehouse).WithMany().HasForeignKey(h => h.WarehouseId).OnDelete(DeleteBehavior.Restrict);
@@ -463,6 +476,8 @@ public class AppDbContext : DbContext
         {
             entity.HasIndex(p => new { p.TenantId, p.BranchId, p.Direction, p.PaymentNo }).IsUnique();
             entity.Property(p => p.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Date).HasColumnType("timestamp without time zone");
+            entity.Property<uint>("xmin").IsRowVersion();
 
             entity.HasOne(p => p.Partner).WithMany().HasForeignKey(p => p.PartnerId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(p => p.BankOrCashAccount).WithMany().HasForeignKey(p => p.BankOrCashAccountId).OnDelete(DeleteBehavior.Restrict);
@@ -485,6 +500,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<StockTransferHeader>(entity =>
         {
             entity.HasIndex(t => new { t.TenantId, t.BranchId, t.TransferNo }).IsUnique();
+            entity.Property(t => t.Date).HasColumnType("timestamp without time zone");
+            entity.Property<uint>("xmin").IsRowVersion();
 
             entity.HasOne(t => t.SourceWarehouse).WithMany().HasForeignKey(t => t.SourceWarehouseId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(t => t.DestinationWarehouse).WithMany().HasForeignKey(t => t.DestinationWarehouseId).OnDelete(DeleteBehavior.Restrict);
@@ -511,6 +528,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<StockAdjustmentHeader>(entity =>
         {
             entity.HasIndex(a => new { a.TenantId, a.BranchId, a.AdjustmentNo }).IsUnique();
+            entity.Property(a => a.Date).HasColumnType("timestamp without time zone");
+            entity.Property<uint>("xmin").IsRowVersion();
 
             entity.HasOne(a => a.Warehouse).WithMany().HasForeignKey(a => a.WarehouseId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(a => a.LinkedVoucher).WithMany().HasForeignKey(a => a.LinkedVoucherId).OnDelete(DeleteBehavior.Restrict);

@@ -43,7 +43,4 @@ public class VoucherHeader : IBranchScoped
 
     public List<VoucherDetail> Details { get; set; } = [];
     public List<VoucherAttachment> Attachments { get; set; } = [];
-
-    [System.ComponentModel.DataAnnotations.Timestamp]
-    public byte[] RowVersion { get; set; } = [];
 }
