@@ -196,7 +196,11 @@ public class VoucherRepository : IVoucherRepository
             throw new BadRequestException(ResponseMessage.VoucherNotPostedForReverse);
         }
 
-        var reversalDate = DateTime.UtcNow.Date;
+        // FiscalPeriod.StartDate/EndDate are mapped as Postgres "timestamp without time zone",
+        // which Npgsql refuses to compare against a Kind=Utc DateTime. DateTime.UtcNow.Date keeps
+        // Kind=Utc, so it must be re-specified as Unspecified (matching how request.Date arrives
+        // from JSON model binding elsewhere in this file) before it can be used in that query.
+        var reversalDate = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Unspecified);
         if (await _fiscalPeriodGuard.IsDateInClosedPeriodAsync(reversalDate))
         {
             throw new BadRequestException(ResponseMessage.TodayInClosedPeriod);
