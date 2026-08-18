@@ -45,33 +45,37 @@
 
     @if (!isEditMode) {
       <div class="sub-section">
-        <div class="sub-section-header">
-          <h3>Variants</h3>
-          <p-button label="Add Variant Row" icon="pi pi-plus" size="small" [text]="true" type="button" (onClick)="addVariantRow()" />
-        </div>
+        @if (form.controls.hasVariants.value) {
+          <div class="sub-section-header">
+            <h3>Variants</h3>
+            <p-button label="Add Variant Row" icon="pi pi-plus" size="small" [text]="true" type="button" (onClick)="addVariantRow()" />
+          </div>
 
-        <p-table [value]="variantsArray.controls">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Name</th>
-              <th>Variant Code</th>
-              <th>Barcode</th>
-              <th>Default</th>
-              <th></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-variantGroup let-i="rowIndex">
-            <tr [formGroup]="variantGroup">
-              <td><input type="text" pInputText formControlName="name" /></td>
-              <td><input type="text" pInputText formControlName="variantCode" /></td>
-              <td><input type="text" pInputText formControlName="barcode" /></td>
-              <td><p-checkbox formControlName="isDefault" [binary]="true" /></td>
-              <td>
-                <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" type="button" (onClick)="removeVariantRow(i)" />
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
+          <p-table [value]="variantsArray.controls">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Name</th>
+                <th>Variant Code</th>
+                <th>Barcode</th>
+                <th>Default</th>
+                <th></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-variantGroup let-i="rowIndex">
+              <tr [formGroup]="variantGroup">
+                <td><input type="text" pInputText formControlName="name" /></td>
+                <td><input type="text" pInputText formControlName="variantCode" /></td>
+                <td><input type="text" pInputText formControlName="barcode" /></td>
+                <td><p-checkbox formControlName="isDefault" [binary]="true" /></td>
+                <td>
+                  <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" type="button" (onClick)="removeVariantRow(i)" />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <p class="muted">A single "Default" variant will be created automatically for this product.</p>
+        }
 
         <div class="sub-section-header">
           <h3>UOM Conversions</h3>

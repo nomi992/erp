@@ -177,7 +177,11 @@ export class ProductForm implements OnInit {
       hasVariants: raw.hasVariants,
       isStockTracked: raw.isStockTracked,
       reorderLevel: raw.reorderLevel,
-      variants: id
+      // The backend ignores Variants entirely (and seeds its own single "Default" variant) whenever
+      // hasVariants is false - so the always-present blank row from variantsArray must not be sent
+      // in that case, or its empty Name/VariantCode trip ASP.NET's automatic [Required] validation
+      // before ProductRepository.CreateAsync ever gets a chance to apply that "ignore" behavior.
+      variants: id || !raw.hasVariants
         ? []
         : this.variantsArray.getRawValue().map((v) => ({
             name: v.name,

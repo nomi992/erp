@@ -86,6 +86,7 @@ builder.Services.AddScoped<IReportScheduleRepository, ReportScheduleRepository>(
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<ICurrentTenantContext, CurrentTenantContext>();
 builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<ITenantDefaultsProvisioner, TenantDefaultsProvisioner>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();

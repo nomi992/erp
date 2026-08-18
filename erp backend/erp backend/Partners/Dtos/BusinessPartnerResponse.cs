@@ -15,6 +15,7 @@ public class BusinessPartnerResponse
     public int DefaultPaymentTermDays { get; set; }
     public decimal? CreditLimit { get; set; }
     public bool IsActive { get; set; }
+    public bool IsDefault { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public int? ReceivableAccountId { get; set; }
     public int? PayableAccountId { get; set; }
@@ -33,6 +34,7 @@ public class BusinessPartnerResponse
             DefaultPaymentTermDays = entity.DefaultPaymentTermDays,
             CreditLimit = entity.CreditLimit,
             IsActive = entity.IsActive,
+            IsDefault = entity.IsDefault,
             CreatedAtUtc = entity.CreatedAtUtc,
             ReceivableAccountId = entity.ReceivableAccountId,
             PayableAccountId = entity.PayableAccountId,

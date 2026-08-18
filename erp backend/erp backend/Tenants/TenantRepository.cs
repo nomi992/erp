@@ -10,10 +10,12 @@ namespace erp_backend.Tenants;
 public class TenantRepository : ITenantRepository
 {
     private readonly AppDbContext _context;
+    private readonly ITenantDefaultsProvisioner _defaultsProvisioner;
 
-    public TenantRepository(AppDbContext context)
+    public TenantRepository(AppDbContext context, ITenantDefaultsProvisioner defaultsProvisioner)
     {
         _context = context;
+        _defaultsProvisioner = defaultsProvisioner;
     }
 
     public async Task<List<TenantResponse>> GetAllAsync()
@@ -42,6 +44,8 @@ public class TenantRepository : ITenantRepository
         var tenant = new Tenant { Name = request.Name, Code = request.Code };
         _context.Tenants.Add(tenant);
         await _context.SaveChangesAsync();
+
+        await _defaultsProvisioner.ProvisionAsync(tenant);
 
         return TenantResponse.FromEntity(tenant);
     }

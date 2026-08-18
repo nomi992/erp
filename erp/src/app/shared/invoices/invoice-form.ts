@@ -445,6 +445,16 @@ export class InvoiceForm implements OnInit {
         this.lookupsLoading.set(false);
 
         this.partnerOptions.set((partners.data ?? []).map((p) => ({ label: `${p.code} - ${p.name}`, value: p.id })));
+
+        // New documents (not edit/view of an existing one) start with the tenant's default partner
+        // pre-selected - e.g. "Walk-in Customer" on a sales invoice - so counter sales don't need a
+        // partner picked every time.
+        if (!this.invoiceId() && !this.form.controls.partnerId.value) {
+          const defaultPartner = (partners.data ?? []).find((p) => p.isDefault);
+          if (defaultPartner) {
+            this.form.controls.partnerId.setValue(defaultPartner.id);
+          }
+        }
         this.warehouseOptions.set((warehouses.data ?? []).map((w) => ({ label: w.name, value: w.id })));
         this.uomOptions.set((units.data ?? []).map((u) => ({ label: `${u.code} - ${u.name}`, value: u.id })));
         this.taxRateOptions.set([

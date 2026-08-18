@@ -19,4 +19,5 @@ public class BusinessPartnerRequest
     public string? Address { get; set; }
     public int DefaultPaymentTermDays { get; set; }
     public decimal? CreditLimit { get; set; }
+    public bool IsDefault { get; set; }
 }

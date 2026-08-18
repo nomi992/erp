@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { CheckboxModule } from 'primeng/checkbox';
 import { PrimeTemplate } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -25,6 +26,7 @@ import { BusinessPartnerListConfig } from './business-partner-list.models';
     ReactiveFormsModule,
     ButtonModule,
     CardModule,
+    CheckboxModule,
     DialogModule,
     HasRightDirective,
     InputNumberModule,
@@ -64,6 +66,7 @@ export class BusinessPartnerList implements OnInit {
     address: this.fb.control<string | null>(null),
     defaultPaymentTermDays: this.fb.nonNullable.control<number>(0),
     creditLimit: this.fb.control<number | null>(null),
+    isDefault: this.fb.nonNullable.control<boolean>(false),
   });
 
   ngOnInit(): void {
@@ -97,6 +100,7 @@ export class BusinessPartnerList implements OnInit {
       address: null,
       defaultPaymentTermDays: 0,
       creditLimit: null,
+      isDefault: false,
     });
     this.dialogVisible.set(true);
   }

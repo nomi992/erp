@@ -23,6 +23,11 @@ public class BusinessPartner : ITenantScoped
     public int DefaultPaymentTermDays { get; set; }
     public decimal? CreditLimit { get; set; }
     public bool IsActive { get; set; } = true;
+
+    // At most one default Customer-ish and one default Supplier-ish partner per tenant (enforced in
+    // BusinessPartnerRepository, mirroring Warehouse.IsDefault). The default customer is what invoice
+    // entry pre-selects, so walk-in/counter sales don't need a partner picked every time.
+    public bool IsDefault { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
     // Sub-ledger accounts (children of the Debtors/Creditors control account) that AR/AP postings

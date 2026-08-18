@@ -71,6 +71,10 @@
   gap: 0.125rem;
 }
 
+.muted {
+  color: var(--p-text-muted-color);
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

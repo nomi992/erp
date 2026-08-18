@@ -46,7 +46,12 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this.auth() !== null);
 
   hasRight(code: string): boolean {
-    return this.rights().includes(code);
+    // Mirrors the backend's RightAuthorizationHandler: a SystemAdmin bypasses every right check
+    // regardless of granted RightCodes (nothing seeds RoleRights for that built-in role - it isn't
+    // meant to hold per-right grants, since it's cross-tenant by design), so login's `rights` array
+    // is always empty for that role. Without this, every *appHasRight-gated button (Add Branch, Add
+    // User, ...) would silently never render for a SystemAdmin even though the API would allow it.
+    return this.role() === 'SystemAdmin' || this.rights().includes(code);
   }
 
   login(request: LoginRequest): Observable<ApiResponse<LoginResponse>> {

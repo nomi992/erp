@@ -65,7 +65,13 @@ public class BusinessPartnerRepository : IBusinessPartnerRepository
             Address = request.Address,
             DefaultPaymentTermDays = request.DefaultPaymentTermDays,
             CreditLimit = request.CreditLimit,
+            IsDefault = request.IsDefault,
         };
+
+        if (request.IsDefault)
+        {
+            await ClearOtherDefaultsAsync(exceptId: null, request.PartnerType);
+        }
 
         _context.BusinessPartners.Add(partner);
         await _ledgerAccounts.EnsureLedgerAccountsAsync(partner);
@@ -93,6 +99,13 @@ public class BusinessPartnerRepository : IBusinessPartnerRepository
         partner.DefaultPaymentTermDays = request.DefaultPaymentTermDays;
         partner.CreditLimit = request.CreditLimit;
 
+        if (request.IsDefault && !partner.IsDefault)
+        {
+            await ClearOtherDefaultsAsync(exceptId: id, request.PartnerType);
+        }
+
+        partner.IsDefault = request.IsDefault;
+
         await _ledgerAccounts.EnsureLedgerAccountsAsync(partner);
         await _context.SaveChangesAsync();
 
@@ -108,5 +121,26 @@ public class BusinessPartnerRepository : IBusinessPartnerRepository
         var partner = await _context.BusinessPartners.FindAsync(id) ?? throw new NotFoundException(ResponseMessage.BusinessPartnerNotFound);
         partner.IsActive = isActive;
         await _context.SaveChangesAsync();
+    }
+
+    // "Default" is scoped per side (Customer vs Supplier), not globally, so marking a partner the
+    // default customer doesn't clobber a separately-marked default supplier; "Both" partners count
+    // on whichever side(s) they overlap with the partner being set.
+    private async Task ClearOtherDefaultsAsync(int? exceptId, PartnerType partnerType)
+    {
+        var isCustomerSide = partnerType is PartnerType.Customer or PartnerType.Both;
+        var isSupplierSide = partnerType is PartnerType.Supplier or PartnerType.Both;
+
+        var others = await _context.BusinessPartners
+            .Where(p => p.IsDefault && p.Id != (exceptId ?? -1))
+            .Where(p =>
+                (isCustomerSide && (p.PartnerType == PartnerType.Customer || p.PartnerType == PartnerType.Both)) ||
+                (isSupplierSide && (p.PartnerType == PartnerType.Supplier || p.PartnerType == PartnerType.Both)))
+            .ToListAsync();
+
+        foreach (var other in others)
+        {
+            other.IsDefault = false;
+        }
     }
 }

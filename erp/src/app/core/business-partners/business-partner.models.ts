@@ -12,6 +12,7 @@ export interface BusinessPartner {
   defaultPaymentTermDays: number;
   creditLimit: number | null;
   isActive: boolean;
+  isDefault: boolean;
   createdAtUtc: string;
   receivableAccountId: number | null;
   payableAccountId: number | null;
@@ -27,4 +28,5 @@ export interface BusinessPartnerRequest {
   address: string | null;
   defaultPaymentTermDays: number;
   creditLimit: number | null;
+  isDefault: boolean;
 }
