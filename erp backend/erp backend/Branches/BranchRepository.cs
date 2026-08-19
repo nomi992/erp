@@ -58,6 +58,24 @@ public class BranchRepository : IBranchRepository
         _context.Branches.Add(branch);
         await _context.SaveChangesAsync();
 
+        // Every branch needs somewhere to hold stock, and the invoice form pre-selects whichever
+        // warehouse is flagged default (mirrors TenantDefaultsProvisioner seeding a default "Walk-in
+        // Customer" BusinessPartner per tenant) — without this, every new branch starts with zero
+        // warehouses and the user is forced to create + flag one manually before they can transact.
+        // TenantId/BranchId are set explicitly here (not left for SaveChanges to auto-stamp) because
+        // the ambient ICurrentTenantContext still points at whatever branch this request came in
+        // under, not the one just created.
+        var warehouse = new Warehouse
+        {
+            TenantId = targetTenantId,
+            BranchId = branch.Id,
+            Code = "MAIN",
+            Name = $"{request.Name} - Main Warehouse",
+            IsDefault = true,
+        };
+        _context.Warehouses.Add(warehouse);
+        await _context.SaveChangesAsync();
+
         return BranchResponse.FromEntity(branch, tenant.Name);
     }
 

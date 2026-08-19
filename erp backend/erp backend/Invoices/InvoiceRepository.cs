@@ -157,6 +157,8 @@ public class InvoiceRepository : IInvoiceRepository
             header.Lines.Add(await BuildLineAsync(lineRequest, reference));
         }
 
+        await ValidateStockAvailabilityAsync(header);
+
         ApplyComputedHeaderFields(header, request);
         header.InvoiceNo = await GenerateInvoiceNoAsync(request.InvoiceType, request.Date);
 
@@ -213,6 +215,8 @@ public class InvoiceRepository : IInvoiceRepository
         {
             header.Lines.Add(await BuildLineAsync(lineRequest, reference));
         }
+
+        await ValidateStockAvailabilityAsync(header);
 
         ApplyComputedHeaderFields(header, request);
 
@@ -727,6 +731,47 @@ public class InvoiceRepository : IInvoiceRepository
         };
     }
 
+    // Guards Create/Update for stock-decreasing document types (SalesInvoice, PurchaseReturn) so a
+    // draft can't be saved for more than what's on hand — the actual quantity is only ever drawn down
+    // later, at ApproveAsync time, via IStockMovementService.IssueAsync. Sums requested qty per product
+    // variant across all lines of the document (not just line-by-line) so two lines for the same product
+    // can't each individually pass against the same on-hand balance.
+    private async Task ValidateStockAvailabilityAsync(InvoiceHeader header)
+    {
+        if (!IsStockDecreasingType(header.InvoiceType))
+        {
+            return;
+        }
+
+        var variantIds = header.Lines.Select(l => l.ProductVariantId).Distinct().ToList();
+
+        var products = await _context.ProductVariants
+            .Include(v => v.Product)
+            .Where(v => variantIds.Contains(v.Id))
+            .ToDictionaryAsync(v => v.Id, v => v.Product!);
+
+        var balances = await _context.StockBalances
+            .Where(b => b.WarehouseId == header.WarehouseId && variantIds.Contains(b.ProductVariantId))
+            .ToDictionaryAsync(b => b.ProductVariantId, b => b.QuantityOnHand);
+
+        foreach (var group in header.Lines.GroupBy(l => l.ProductVariantId))
+        {
+            var product = products[group.Key];
+            if (!product.IsStockTracked)
+            {
+                continue;
+            }
+
+            var requestedQty = group.Sum(l => l.BaseQty);
+            var onHand = balances.GetValueOrDefault(group.Key);
+
+            if (onHand < requestedQty)
+            {
+                throw new BadRequestException(ResponseMessage.InvoiceLineInsufficientStock, product.Name, onHand, requestedQty);
+            }
+        }
+    }
+
     private async Task<decimal> GetBaseQtyAsync(int productId, int baseUnitOfMeasureId, int lineUnitOfMeasureId, decimal qty)
     {
         if (lineUnitOfMeasureId == baseUnitOfMeasureId)
@@ -847,6 +892,11 @@ public class InvoiceRepository : IInvoiceRepository
     private static bool IsOrderType(InvoiceType type) => type is InvoiceType.PurchaseOrder or InvoiceType.SalesOrder;
 
     private static bool IsReturnType(InvoiceType type) => type is InvoiceType.PurchaseReturn or InvoiceType.SaleReturn;
+
+    // Documents that draw down warehouse stock on posting (mirrors the IStockMovementService.IssueAsync
+    // callers in PostSalesInvoiceAsync/PostPurchaseReturnAsync) — a draft raised against either one must
+    // not be creatable/saveable for more than what's actually on hand.
+    private static bool IsStockDecreasingType(InvoiceType type) => type is InvoiceType.SalesInvoice or InvoiceType.PurchaseReturn;
 
     private static bool IsPurchaseSide(InvoiceType type) =>
         type is InvoiceType.PurchaseOrder or InvoiceType.PurchaseInvoice or InvoiceType.PurchaseReturn;

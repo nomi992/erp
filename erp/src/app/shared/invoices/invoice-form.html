@@ -92,6 +92,9 @@
             <th>Product / Variant</th>
             <th>UOM</th>
             <th>Qty</th>
+            @if (isStockDecreasingDoc()) {
+              <th>In Stock</th>
+            }
             <th>Unit Amount</th>
             <th>Tax</th>
             @if (config().isOrder) {
@@ -111,7 +114,21 @@
             <td>
               <p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
             </td>
-            <td><p-inputNumber formControlName="qty" [minFractionDigits]="0" [maxFractionDigits]="4" /></td>
+            <td>
+              <p-inputNumber formControlName="qty" [minFractionDigits]="0" [maxFractionDigits]="4" (onBlur)="onQtyBlur(i)" />
+            </td>
+            @if (isStockDecreasingDoc()) {
+              <td [class.stock-warning]="lineExceedsStock(i)">
+                @if (availableStockFor(i) !== null) {
+                  {{ availableStockFor(i) | number: '1.0-4' }}
+                  @if (lineExceedsStock(i)) {
+                    <p-tag severity="danger" value="Low stock" />
+                  }
+                } @else {
+                  —
+                }
+              </td>
+            }
             <td><p-inputNumber formControlName="unitAmount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4" /></td>
             <td>
               <p-select formControlName="taxRateId" [options]="taxRateOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />

@@ -432,6 +432,8 @@ public enum ResponseMessage
     InvoiceLineUnitOfMeasureNotFound,
     [Description("Quantity must be greater than zero.")]
     InvoiceLineQuantityInvalid,
+    [Description("Insufficient stock for '{0}': only {1} on hand at this warehouse, but {2} requested.")]
+    InvoiceLineInsufficientStock,
     [Description("Tax rate {0} was not found.")]
     InvoiceLineTaxRateNotFound,
     [Description("This document's date falls within a closed fiscal period.")]

@@ -92,7 +92,7 @@
           </ng-template>
           <ng-template pTemplate="body" let-conversionGroup let-i="rowIndex">
             <tr [formGroup]="conversionGroup">
-              <td><p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" /></td>
+              <td><p-select formControlName="unitOfMeasureId" [options]="uomOptions()" optionLabel="label" optionValue="value" appendTo="body" /></td>
               <td><p-inputNumber formControlName="conversionFactor" [minFractionDigits]="0" [maxFractionDigits]="6" /></td>
               <td>
                 <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" size="small" type="button" (onClick)="removeConversionRow(i)" />

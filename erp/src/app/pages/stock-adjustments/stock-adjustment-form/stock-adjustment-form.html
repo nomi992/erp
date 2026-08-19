@@ -50,10 +50,10 @@
         <ng-template pTemplate="body" let-lineGroup let-i="rowIndex">
           <tr [formGroup]="lineGroup">
             <td>
-              <p-select formControlName="productVariantId" [options]="variantOptions()" optionLabel="label" optionValue="value" [filter]="true" />
+              <p-select formControlName="productVariantId" [options]="variantOptions()" optionLabel="label" optionValue="value" [filter]="true" appendTo="body" />
             </td>
             <td>
-              <p-select formControlName="direction" [options]="directionOptions" optionLabel="label" optionValue="value" />
+              <p-select formControlName="direction" [options]="directionOptions" optionLabel="label" optionValue="value" appendTo="body" />
             </td>
             <td><p-inputNumber formControlName="baseQty" [minFractionDigits]="0" [maxFractionDigits]="4" /></td>
             <td>

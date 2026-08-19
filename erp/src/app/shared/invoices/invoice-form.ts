@@ -31,6 +31,7 @@ import { BusinessPartnerService } from '../../core/business-partners/business-pa
 import { WarehouseService } from '../../core/warehouses/warehouse.service';
 import { UnitOfMeasureService } from '../../core/units-of-measure/unit-of-measure.service';
 import { TaxRateService } from '../../core/tax-rates/tax-rate.service';
+import { StockLedgerService } from '../../core/stock-ledger/stock-ledger.service';
 import { HasRightDirective } from '../../core/auth/has-right.directive';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -58,6 +59,7 @@ interface VariantMeta {
   variantName: string;
   baseUnitOfMeasureId: number;
   prices: ProductVariantPrice[];
+  isStockTracked: boolean;
 }
 
 function toIsoDate(date: Date | null): string | undefined {
@@ -105,6 +107,7 @@ export class InvoiceForm implements OnInit {
   private readonly warehouseService = inject(WarehouseService);
   private readonly unitService = inject(UnitOfMeasureService);
   private readonly taxRateService = inject(TaxRateService);
+  private readonly stockLedgerService = inject(StockLedgerService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly authService = inject(AuthService);
@@ -130,6 +133,11 @@ export class InvoiceForm implements OnInit {
     { label: '(None)', value: null, percentage: 0 },
   ]);
   readonly referenceOptions = signal<{ label: string; value: number }[]>([]);
+
+  // Current on-hand qty per product variant at the selected warehouse, only fetched/enforced for
+  // document types that draw down stock on posting (Sales Invoice, Purchase Return) — mirrors
+  // IsStockDecreasingType in the backend's InvoiceRepository. Keyed by productVariantId.
+  readonly stockOnHand = signal<Record<number, number>>({});
 
   readonly paymentModeOptions: { label: string; value: PaymentMode }[] = [
     { label: 'Cash', value: 'Cash' },
@@ -164,7 +172,101 @@ export class InvoiceForm implements OnInit {
       this.loadInvoice(id, isEditRoute);
     } else {
       this.addLine();
+
+      // Counter sales are cash by default, unlike the on-account purchases/orders the form's
+      // base 'Credit' default suits.
+      if (this.config().invoiceType === 'SalesInvoice') {
+        this.form.controls.paymentMode.setValue('Cash');
+      }
     }
+
+    // Re-check on-hand stock for every already-picked line whenever the warehouse changes —
+    // the same product can be in stock at one warehouse and out at another.
+    this.form.controls.warehouseId.valueChanges.subscribe(() => this.refreshStockForAllLines());
+  }
+
+  /** Whether this document type draws down warehouse stock on posting — mirrors the backend's
+   *  IsStockDecreasingType (InvoiceRepository.cs). Only these need an on-hand check. */
+  isStockDecreasingDoc(): boolean {
+    return this.config().invoiceType === 'SalesInvoice' || this.config().invoiceType === 'PurchaseReturn';
+  }
+
+  /** Current on-hand qty for a line's selected variant, or null if unknown/not applicable. */
+  availableStockFor(index: number): number | null {
+    const variantId = this.linesArray.at(index).controls.productVariantId.value;
+    if (!variantId) return null;
+    const meta = this.variantMeta()[variantId];
+    if (!meta?.isStockTracked) return null;
+    return this.stockOnHand()[variantId] ?? null;
+  }
+
+  /** True once the total requested qty for this line's variant (summed across all lines using the
+   *  same variant) exceeds what's on hand — same aggregation the backend applies. */
+  lineExceedsStock(index: number): boolean {
+    const variantId = this.linesArray.at(index).controls.productVariantId.value;
+    if (!variantId) return false;
+    const available = this.availableStockFor(index);
+    if (available === null) return false;
+
+    const requested = this.linesArray.controls
+      .filter((g) => g.controls.productVariantId.value === variantId)
+      .reduce((sum, g) => sum + (g.controls.qty.value || 0), 0);
+
+    return requested > available;
+  }
+
+  /** One message per over-sold product, used to block Save and to tell the user what's short. */
+  insufficientStockMessages(): string[] {
+    if (!this.isStockDecreasingDoc()) return [];
+
+    const seen = new Set<number>();
+    const messages: string[] = [];
+
+    for (const group of this.linesArray.controls) {
+      const variantId = group.controls.productVariantId.value;
+      if (!variantId || seen.has(variantId)) continue;
+      seen.add(variantId);
+
+      const meta = this.variantMeta()[variantId];
+      if (!meta?.isStockTracked) continue;
+
+      const available = this.stockOnHand()[variantId];
+      if (available === undefined) continue;
+
+      const requested = this.linesArray.controls
+        .filter((g) => g.controls.productVariantId.value === variantId)
+        .reduce((sum, g) => sum + (g.controls.qty.value || 0), 0);
+
+      if (requested > available) {
+        messages.push(`${meta.productName} - ${meta.variantName}: only ${available} in stock, but ${requested} requested.`);
+      }
+    }
+
+    return messages;
+  }
+
+  private refreshStockForAllLines(): void {
+    for (let i = 0; i < this.linesArray.length; i++) {
+      this.refreshStockForLine(i);
+    }
+  }
+
+  private refreshStockForLine(index: number): void {
+    if (!this.isStockDecreasingDoc()) return;
+
+    const warehouseId = this.form.controls.warehouseId.value;
+    const variantId = this.linesArray.at(index).controls.productVariantId.value;
+    if (!warehouseId || !variantId) return;
+
+    const meta = this.variantMeta()[variantId];
+    if (!meta?.isStockTracked) return;
+
+    this.stockLedgerService.getOnHand({ warehouseId, productVariantId: variantId }).subscribe({
+      next: (response) => {
+        const onHand = response.data?.[0]?.quantityOnHand ?? 0;
+        this.stockOnHand.update((current) => ({ ...current, [variantId]: onHand }));
+      },
+    });
   }
 
   addLine(): void {
@@ -196,6 +298,26 @@ export class InvoiceForm implements OnInit {
         group.controls.unitAmount.setValue(price.amount);
       }
     }
+
+    this.refreshStockForLine(index);
+  }
+
+  /** Fires as soon as the user finishes typing a qty that oversells a product — don't make them
+   *  find the disabled Save button first to learn why, or hunt for the "Low stock" tag in the table. */
+  onQtyBlur(index: number): void {
+    if (!this.lineExceedsStock(index)) return;
+
+    const variantId = this.linesArray.at(index).controls.productVariantId.value;
+    if (!variantId) return;
+
+    const meta = this.variantMeta()[variantId];
+    const available = this.stockOnHand()[variantId] ?? 0;
+    const requested = this.linesArray.controls
+      .filter((g) => g.controls.productVariantId.value === variantId)
+      .reduce((sum, g) => sum + (g.controls.qty.value || 0), 0);
+
+    const productLabel = meta ? `${meta.productName} - ${meta.variantName}` : 'This product';
+    this.notificationService.error(`Only ${available} of "${productLabel}" available in stock — you're trying to sell ${requested}.`);
   }
 
   onReferenceChange(): void {
@@ -228,6 +350,7 @@ export class InvoiceForm implements OnInit {
         }),
       );
     }
+    this.refreshStockForAllLines();
   }
 
   lineTotal(group: LineGroup): number {
@@ -266,13 +389,19 @@ export class InvoiceForm implements OnInit {
       this.form.controls.partnerId.valid &&
       this.form.controls.warehouseId.valid &&
       this.form.controls.date.valid &&
-      this.validLineCount() > 0
+      this.validLineCount() > 0 &&
+      this.insufficientStockMessages().length === 0
     );
   }
 
   submit(): void {
     if (!this.canSave()) {
       this.form.markAllAsTouched();
+
+      const stockIssues = this.insufficientStockMessages();
+      if (stockIssues.length > 0) {
+        this.notificationService.error(`Not enough stock to save: ${stockIssues.join(' | ')}`);
+      }
       return;
     }
 
@@ -456,6 +585,15 @@ export class InvoiceForm implements OnInit {
           }
         }
         this.warehouseOptions.set((warehouses.data ?? []).map((w) => ({ label: w.name, value: w.id })));
+
+        // Same idea as the default partner above - a new document starts with the tenant's
+        // default warehouse pre-selected instead of forcing a pick every time.
+        if (!this.invoiceId() && !this.form.controls.warehouseId.value) {
+          const defaultWarehouse = (warehouses.data ?? []).find((w) => w.isDefault);
+          if (defaultWarehouse) {
+            this.form.controls.warehouseId.setValue(defaultWarehouse.id);
+          }
+        }
         this.uomOptions.set((units.data ?? []).map((u) => ({ label: `${u.code} - ${u.name}`, value: u.id })));
         this.taxRateOptions.set([
           { label: '(None)', value: null, percentage: 0 },
@@ -473,6 +611,7 @@ export class InvoiceForm implements OnInit {
               variantName: variant.name,
               baseUnitOfMeasureId: product.baseUnitOfMeasureId,
               prices: variant.prices,
+              isStockTracked: product.isStockTracked,
             };
           }
         }
@@ -480,6 +619,7 @@ export class InvoiceForm implements OnInit {
         this.variantMeta.set(meta);
 
         this.loadReferenceOptions();
+        this.refreshStockForAllLines();
       },
       error: (error: HttpErrorResponse) => {
         this.lookupsLoading.set(false);
@@ -520,6 +660,7 @@ export class InvoiceForm implements OnInit {
         this.readOnly.set(!isEditRoute || invoice.status !== 'Draft');
         this.current.set(invoice);
         this.applyInvoice(invoice);
+        this.refreshStockForAllLines();
 
         if (this.readOnly()) {
           this.form.disable();
